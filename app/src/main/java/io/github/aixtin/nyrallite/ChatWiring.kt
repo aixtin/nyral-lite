@@ -33,6 +33,7 @@ internal class ChatWiring(
     private val btnSend: Button,
     private val messages: MutableList<Message>,
     private val takeAttachments: () -> List<AttachmentRef>,
+    private val onPersonaChanged: () -> Unit = {},
 ) {
     lateinit var sessions: SessionController
         private set
@@ -118,6 +119,7 @@ internal class ChatWiring(
             hasMessages = { messages.isNotEmpty() },
             greetingOf = { id -> PersonaGreeting.of(activity.application as App, id) },
             insertGreeting = controller::insertGreeting,
+            onApplied = onPersonaChanged,
         )
     }
 

@@ -7,9 +7,13 @@
     android:background="@color/bg">
 
     <FrameLayout
+        android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/bg">
+        android:background="@color/bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground">
         <TextView
             android:id="@+id/title_bar"
             android:layout_width="wrap_content"
@@ -19,11 +23,40 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/ai_text"
-            android:clickable="true"
-            android:focusable="true"
             android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
-            android:background="?attr/selectableItemBackground" />
+            android:paddingVertical="8dp" />
+
+        <!-- 有人设时替换 App 名：头像在上、昵称小字在下 -->
+        <LinearLayout
+            android:id="@+id/header_persona"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/header_avatar"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/bg_avatar"
+                android:clipToOutline="true"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/header_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxWidth="160dp"
+                android:singleLine="true"
+                android:textColor="@color/bar_action_text_muted"
+                android:textSize="10sp" />
+        </LinearLayout>
     </FrameLayout>
 
     <View

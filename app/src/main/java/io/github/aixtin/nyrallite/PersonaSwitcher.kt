@@ -21,6 +21,8 @@ internal class PersonaSwitcher(
     private val greetingOf: (String?) -> String,
     /** 把开场白插到空会话第一条；会话已有内容时由实现自行忽略。 */
     private val insertGreeting: (String) -> Unit,
+    /** 切换落地后通知外部（刷新标题栏头像）。 */
+    private val onApplied: () -> Unit = {},
 ) {
     private val launcher = activity.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -69,5 +71,6 @@ internal class PersonaSwitcher(
             if (id == null) R.string.persona_disabled else R.string.persona_changed,
             Toast.LENGTH_SHORT,
         ).show()
+        onApplied()
     }
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 标题栏头像：小圆角方块，PNG 卡原图居中裁切 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFF" />
+    <corners android:radius="8dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#ECECEF" />
+</shape>

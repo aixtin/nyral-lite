@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.aixtin.nyrallite.contract.PersonaCard
 import io.github.aixtin.nyrallite.contract.PersonaStore
 import io.github.aixtin.nyrallite.kernel.get
+import io.github.aixtin.nyrallite.plugins.personastore.PersonaAvatar
+import io.github.aixtin.nyrallite.plugins.personastore.PngCardReader
 import io.github.aixtin.nyrallite.plugins.personastore.TavernCardParser
 
 /** 人设库：SAF 导入、短长档位、编辑与全局默认选择。 */
@@ -85,9 +87,18 @@ class PersonaActivity : AppCompatActivity() {
 
     private fun importCard(uri: android.net.Uri) {
         runCatching {
-            val text = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
                 ?: error("无法读取文件")
-            store.upsert(TavernCardParser.parse(text))
+            val png = PngCardReader.isPng(bytes)
+            val text = if (png) {
+                PngCardReader.jsonText(bytes) ?: error("PNG 里没有角色卡数据")
+            } else {
+                String(bytes, Charsets.UTF_8)
+            }
+            val card = TavernCardParser.parse(text)
+            store.upsert(card)
+            // PNG 卡的原图就是头像，按 id 一起落盘；纯 JSON 卡没有图
+            if (png) PersonaAvatar.save(this, card.id, bytes)
         }.onSuccess {
             reload()
             Toast.makeText(this, R.string.persona_imported, Toast.LENGTH_SHORT).show()
@@ -117,6 +128,7 @@ class PersonaActivity : AppCompatActivity() {
             .setNegativeButton(R.string.history_cancel, null)
             .setPositiveButton(R.string.persona_delete) { _, _ ->
                 store.delete(card.id)
+                PersonaAvatar.delete(this, card.id)
                 reload()
             }
             .show()

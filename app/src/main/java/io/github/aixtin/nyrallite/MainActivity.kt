@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var wiring: ChatWiring
     private lateinit var scrollButton: ScrollToBottomButton
     private lateinit var gateSwitch: GateModeSwitch
+    private lateinit var header: PersonaHeader
     private lateinit var input: EditText
     private lateinit var voice: VoiceInput
 
@@ -54,11 +55,13 @@ class MainActivity : AppCompatActivity() {
         val rv = findViewById<RecyclerView>(R.id.list)
         input = findViewById(R.id.input)
         val btnSend = findViewById<Button>(R.id.btn_send)
-        val titleBar = findViewById<TextView>(R.id.title_bar)
+        header = PersonaHeader.attach(this)
 
         attachmentStores = kernel.services.get<AttachmentStores>()
         attachments = ImageAttachments(this, attachmentStores) { composerAttachments.render(it) }
-        wiring = ChatWiring(this, rv, input, btnSend, messages, attachments::take)
+        wiring = ChatWiring(this, rv, input, btnSend, messages, attachments::take) {
+            header.refresh(wiring.sessions.currentPersonaId)
+        }
         wiring.start()
 
         btnSend.setOnClickListener {
@@ -66,8 +69,8 @@ class MainActivity : AppCompatActivity() {
             // 发送成功会清空输入框，立即清掉对应草稿，不等防抖
             wiring.flushDraft()
         }
-        // 点击顶部标题文字进入设置页
-        titleBar.setOnClickListener {
+        // 点击标题栏进入设置页；有人设时这一栏显示头像 + 名字
+        findViewById<View>(R.id.top_bar).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
         // 门禁：单击循环切换档位并轻提示；长按进入门禁设置编辑白名单/禁止名单
@@ -116,6 +119,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // 历史页可能删掉了当前会话：回到主界面时切到空会话
         wiring.resetIfMissing()
+        header.refresh(wiring.sessions.currentPersonaId)
         // 配置页可能改过档位，回来时刷新工具条
         gateSwitch.refresh()
         if (!kernel.services.get<ApiConfigStore>().isConfigured()) {
