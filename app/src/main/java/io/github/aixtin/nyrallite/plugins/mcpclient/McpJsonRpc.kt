@@ -40,14 +40,42 @@ internal object McpJsonRpc {
         throw RuntimeException("MCP 响应缺少 id=$id 的结果")
     }
 
+    /**
+     * 拆出消息体：普通 JSON 原样一条；SSE 按事件收集 data 行。
+     * 标准服务端会先写 `event: message`，所以不能只看整段是否以 data 开头。
+     */
     private fun messagesOf(body: String): List<String> {
         val trimmed = body.trim()
         if (trimmed.isEmpty()) return emptyList()
-        if (!trimmed.startsWith("data:")) return listOf(trimmed)
-        return trimmed.lineSequence()
-            .filter { it.startsWith("data:") }
-            .map { it.removePrefix("data:").trim() }
-            .filter { it.isNotEmpty() }
-            .toList()
+        if (!looksLikeSse(trimmed)) return listOf(trimmed)
+        val messages = mutableListOf<String>()
+        val data = StringBuilder()
+        trimmed.lineSequence().forEach { raw ->
+            val line = raw.trimEnd()
+            when {
+                line.isBlank() -> flushEvent(data, messages)
+                line.startsWith("data:") -> {
+                    if (data.isNotEmpty()) data.append('\n')
+                    data.append(line.removePrefix("data:").trimStart())
+                }
+                // event: / id: / retry: 与注释行不影响消息体
+            }
+        }
+        flushEvent(data, messages)
+        return messages
+    }
+
+    private fun flushEvent(data: StringBuilder, messages: MutableList<String>) {
+        if (data.isEmpty()) return
+        messages.add(data.toString())
+        data.clear()
+    }
+
+    private fun looksLikeSse(body: String): Boolean {
+        val first = body.lineSequence().firstOrNull { it.isNotBlank() } ?: return false
+        return first.startsWith("data:") ||
+            first.startsWith("event:") ||
+            first.startsWith("id:") ||
+            first.startsWith("retry:")
     }
 }
