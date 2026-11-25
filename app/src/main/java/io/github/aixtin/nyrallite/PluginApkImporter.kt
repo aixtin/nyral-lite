@@ -49,9 +49,11 @@ internal class PluginApkImporter(
             onStatus("导入失败：签名未被信任或入口类未找到", true)
             return
         }
+        // 同 id 视为升级：先卸旧插件（回收它注册的服务与 effect），再装新版本
+        if (activity.kernel.isInstalled(loaded.pluginId)) activity.kernel.uninstall(loaded.pluginId)
         if (!activity.kernel.installOne(loaded.plugin)) {
             app.dexLoader.unload(loaded.pluginId, deleteApk = true)
-            onStatus("安装失败：${loaded.pluginId} 与已安装插件冲突", true)
+            onStatus("安装失败：${loaded.pluginId} 的 install() 抛异常，详情看 logcat", true)
             return
         }
         // 首次导入默认启用；已存在同 id 则覆盖记录（视为升级）

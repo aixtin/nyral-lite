@@ -8,27 +8,36 @@ import java.util.zip.ZipFile
 /** APK Manifest 读取与 DexClassLoader 资源释放。 */
 internal object DexSupport {
 
-    /** 读 META-INF/MANIFEST.MF 的 Plugin-Entry 行。 */
+    /** 读入口类：优先 APK 内 assets/plugin-entry.txt，兼容旧的 META-INF/MANIFEST.MF。 */
     fun readPluginEntry(apkFile: File): String? {
         try {
             // 必须用 ZipFile（走 central directory）：apksigner 重签后会把 META-INF/MANIFEST.MF
             // 挪到 APK Signing Block 之后，ZipInputStream 顺序读到签名块就停了。
             ZipFile(apkFile).use { zip ->
                 val entries = zip.entries()
+                var legacy: java.util.zip.ZipEntry? = null
                 while (entries.hasMoreElements()) {
                     val e = entries.nextElement()
-                    if (!e.name.equals("META-INF/MANIFEST.MF", ignoreCase = true)) continue
-                    val text = zip.getInputStream(e).bufferedReader().readText()
-                    return text.lineSequence()
-                        .firstOrNull { it.startsWith("Plugin-Entry:") }
-                        ?.substringAfter(':')?.trim()
+                    if (e.name.equals(ASSETS_ENTRY, ignoreCase = true)) {
+                        return parseEntry(zip.getInputStream(e).bufferedReader().readText())
+                    }
+                    if (e.name.equals(LEGACY_ENTRY, ignoreCase = true)) legacy = e
                 }
+                legacy?.let { return parseEntry(zip.getInputStream(it).bufferedReader().readText()) }
             }
         } catch (t: Throwable) {
             Log.e(TAG, "readPluginEntry failed", t)
         }
         return null
     }
+
+    private fun parseEntry(text: String): String? = text.lineSequence()
+        .firstOrNull { it.startsWith("Plugin-Entry:") }
+        ?.substringAfter(':')?.trim()
+        ?.takeIf { it.isNotBlank() }
+
+    private const val ASSETS_ENTRY = "assets/plugin-entry.txt"
+    private const val LEGACY_ENTRY = "META-INF/MANIFEST.MF"
 
     /** 只调用 ClassLoader.close()；加载失败时用，避免连带清理未注册的 dex。 */
     fun safeClose(loader: DexClassLoader) {

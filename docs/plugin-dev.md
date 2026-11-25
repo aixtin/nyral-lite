@@ -42,6 +42,8 @@ now-plugin/
 ├── settings.gradle.kts
 └── src/main/
     ├── AndroidManifest.xml
+    ├── assets/
+    │   └── plugin-entry.txt        ← 唯一一行：Plugin-Entry: <入口类全名>
     └── kotlin/
         ├── io/github/aixtin/nyrallite/kernel/   ← 宿主契约副本（原样复制，不改）
         │   ├── Plugin.kt
@@ -100,30 +102,23 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
 }
 
-// 往 APK 里注入 META-INF/MANIFEST.MF 的 Plugin-Entry 行
-tasks.register("injectPluginManifest") {
-    dependsOn("assembleDebug")
-    doLast {
-        val apk = file("$buildDir/outputs/apk/debug/now-plugin-debug.apk")
-        if (!apk.exists()) return@doLast
-        val tmp = file("$buildDir/plugin_meta_tmp").apply { deleteRecursively(); mkdirs() }
-        file("$tmp/META-INF").mkdirs()
-        file("$tmp/META-INF/MANIFEST.MF").writeText(
-            "Plugin-Entry: com.example.nowplugin.NowPlugin\n",
-        )
-        exec { commandLine("zip", "-r", apk.absolutePath, "META-INF/"); workingDir = tmp }
-        tmp.deleteRecursively()
-    }
-}
+// 入口声明写在 src/main/assets/plugin-entry.txt，AGP 会在签名前把它打进 APK。
+// 不要用 zip 往已签名 APK 里追加文件：那会破坏 v2/v3 签名，宿主会报"无法解析 APK 签名"。
+```
+
+`src/main/assets/plugin-entry.txt`（冒号后一个空格）：
+
+```
+Plugin-Entry: com.example.nowplugin.NowPlugin
 ```
 
 构建：
 
 ```bash
-./gradlew injectPluginManifest
+./gradlew assembleDebug
 # 产物：build/outputs/apk/debug/now-plugin-debug.apk
 # 自检入口行是否存在：
-unzip -p build/outputs/apk/debug/now-plugin-debug.apk META-INF/MANIFEST.MF
+unzip -p build/outputs/apk/debug/now-plugin-debug.apk assets/plugin-entry.txt
 ```
 
 ### 2.3 `AndroidManifest.xml`
@@ -162,7 +157,7 @@ class NowPlugin : Plugin {
 要求：
 
 - 类必须是 `public`、有**无参构造函数**、实现 `Plugin`；
-- `Plugin-Entry` 写的就是这个类的全限定名；
+- `assets/plugin-entry.txt` 里的 `Plugin-Entry` 写的就是这个类的全限定名；
 - `install()` 里只做注册，**不要**做网络/磁盘预热（安装必须快）。
 
 ### 2.5 安装到手机
@@ -231,7 +226,8 @@ interface PluginContext {
 ```
 导入 APK → 验签 → 实例化入口类 → kernel.installOne(plugin)
         → install(ctx) 注册工具/服务/事件
-卸载/禁用 → 内核调用 effect 回收 → 释放 ClassLoader
+卸载/禁用 → 内核按逆序回收插件注册的服务与 effect → 释放 ClassLoader
+同 id 再导入 → 先卸载旧版本（回收它的服务与 effect）→ 装新版本
 冷启动 → App 读取「已启用」记录 → 重新加载 APK 并 install
 ```
 
@@ -406,24 +402,24 @@ ctx.effect {
 
 ---
 
-## 8. 安装 / 升级 / 卸载（当前实现的限制，务必先看）
+## 8. 安装 / 升级 / 卸载
 
 | 操作 | 行为 |
 |---|---|
 | 导入 | 复制到 `files/plugins/<pluginId>.apk`，验签，实例化入口类，热加载 |
-| 启用/禁用 | 禁用 = 从内核卸载、保留 APK；启用 = 重新加载 |
+| 启用/禁用 | 禁用 = 从内核卸载并回收该插件注册的服务，保留 APK；启用 = 重新加载 |
 | 移除 | 卸载并删除 APK 与记录 |
 | 冷启动 | 只恢复 `enabled = true` 的记录 |
-| **同 id 重复导入（升级）** | **当前会失败**：内核已存在同 id，导入返回"冲突"。请先「移除」旧版并**重启 App**，再导入新版 |
-| **禁用后的服务残留** | 当前服务容器没有按插件回收注册项：禁用后该插件注册的工具**可能仍出现在工具清单里**，直到重启 App |
+| **同 id 重复导入（升级）** | 自动按升级处理：先卸载旧版本（回收它的服务与 effect），再装新版本、覆盖版本记录；无需手动移除，无需重启 |
+| 服务回收 | 插件 `provide` 的实例与 `effect` 都归属该插件，卸载/禁用/升级时逆序移除，不会残留在工具清单里 |
 
-因此现阶段迭代插件的标准流程是：
+迭代插件的流程：
 
 ```
-改代码 → 构建 → 手机「插件」页移除旧插件 → 重启 App → 导入新 APK → 测试
+改代码 → 构建（版本号递增）→「插件」页再次导入同 id 的 APK → 聊天里让模型再调一次工具
 ```
 
-> 这两条是已知待改进项（热升级、按插件回收服务），不是插件写法问题。
+> 升级时插件会被完整重装：`install()` 会重新执行，上一版本注册的工具/服务/事件都会被回收，不需要你自己清理。
 
 ---
 
@@ -432,14 +428,14 @@ ctx.effect {
 | 现象 | 原因 / 处理 |
 |---|---|
 | 导入提示"不是有效的插件 APK" | APK 小于 1KB、或读不到签名 |
-| 导入提示"入口类未找到" | `META-INF/MANIFEST.MF` 缺失/拼错 `Plugin-Entry:`，或入口类不在 APK 里 |
-| 导入提示"与已安装插件冲突" | 同 id 已安装，见第 8 节升级流程 |
+| 导入提示"入口类未找到" | `assets/plugin-entry.txt` 缺失或 `Plugin-Entry:` 拼错（旧版兼容 `META-INF/MANIFEST.MF`），或入口类不在 APK 里 |
+| 导入提示"install() 抛异常" | 插件 `install()` 内部报错，logcat 有堆栈；修复后重新导入即可 |
 | 弹"未知签名的插件" | 签名与宿主不同；核对指纹后信任，或改用同一 debug keystore |
 | 插件装了但工具没出现 | 没 `provide(ToolSource::class, ...)`；或 `list()` 抛异常（看 logcat）；或工具被同名工具覆盖 |
 | 调用时报 `NoSuchMethodError` / `AbstractMethodError` | 插件里复制的契约与宿主版本不一致（宿主升级过接口） |
 | 调用时报 `ClassNotFoundException` | 插件里引用了宿主没有的类；把依赖打进 APK，或改用宿主自带能力 |
 | 插件的工具被门禁拦截 | 正常行为；用户点允许，或在门禁设置里加白名单 |
-| 禁用后工具还在 | 见第 8 节，需重启 App |
+| 禁用/移除后工具还在 | 正常版本会立即回收；若仍出现，说明 App 版本过旧或插件重复 `provide`，抓 logcat 反馈 |
 
 调试命令：
 
@@ -482,7 +478,7 @@ adb shell dumpsys package io.github.aixtin.nyrallite | head -5
 
 | 用途 | 路径 |
 |---|---|
-| 最小插件工程（含契约副本与 MANIFEST 注入任务） | `testplugin/` |
+| 最小插件工程（含契约副本与 `assets/plugin-entry.txt`） | `testplugin/` |
 | 契约定义 | `app/src/main/java/io/github/aixtin/nyrallite/kernel/` |
 | 工具契约 | `app/src/main/java/io/github/aixtin/nyrallite/contract/ToolSource.kt` 等 |
 | 内置工具示例（系统能力包装成工具） | `app/src/main/java/io/github/aixtin/nyrallite/plugins/system/SystemToolSource.kt` |
@@ -531,7 +527,7 @@ interface ToolSource {
 ## 交付检查清单
 
 - [ ] 入口类实现 `Plugin`，public + 无参构造
-- [ ] APK 内 `META-INF/MANIFEST.MF` 有 `Plugin-Entry: <类全名>`
+- [ ] APK 内 `assets/plugin-entry.txt` 有 `Plugin-Entry: <类全名>`（旧版兼容 `META-INF/MANIFEST.MF`）
 - [ ] `PluginManifest.id` 唯一、版本号递增
 - [ ] `ToolSpec.name` 带前缀、不与内置/MCP 工具重名
 - [ ] `ToolSpec.description` 写清"什么时候用"

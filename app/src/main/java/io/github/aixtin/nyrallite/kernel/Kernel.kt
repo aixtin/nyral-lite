@@ -24,6 +24,8 @@ class Kernel(
     private val registry = DefaultServiceRegistry()
     private val configStore = ConfigStore(configBackend)
     private val handles = LinkedHashMap<String, PluginHandle>()
+    /** 每个插件通过 ctx.services.provide 注册的实例，卸载时按逆序移除。 */
+    private val owned = HashMap<String, OwnedServices>()
     private var started = false
 
     /** 主体侧的特权视图：不做权限校验。 */
@@ -56,18 +58,22 @@ class Kernel(
         val id = plugin.manifest.id
         if (handles.containsKey(id)) return false
         val handle = PluginHandle(plugin)
+        val services = OwnedServices(PluginServiceView(registry, plugin.manifest), registry)
         try {
             handle.install(
                 appContext = appContext,
-                services = PluginServiceView(registry, plugin.manifest),
+                services = services,
                 events = events,
                 gates = gates,
                 config = configStore.forPlugin(id),
             )
             handles[id] = handle
+            owned[id] = services
             return true
         } catch (e: Exception) {
             e.printStackTrace()
+            // 安装失败同样要收回已注册的服务，避免残留不可用实例
+            services.release()
             return false
         }
     }
@@ -78,7 +84,10 @@ class Kernel(
      */
     fun uninstall(pluginId: String): Boolean {
         val handle = handles.remove(pluginId) ?: return false
-        return runCatching { handle.dispose() }.isSuccess
+        val ok = runCatching { handle.dispose() }.isSuccess
+        // effect 回收之后再移除服务，避免插件还在运行时被抽走依赖
+        owned.remove(pluginId)?.release()
+        return ok
     }
 
     /** 启动内核（可重复调用，幂等）。 */
@@ -97,6 +106,8 @@ class Kernel(
             }
         }
         handles.clear()
+        owned.values.forEach { it.release() }
+        owned.clear()
         started = false
     }
 

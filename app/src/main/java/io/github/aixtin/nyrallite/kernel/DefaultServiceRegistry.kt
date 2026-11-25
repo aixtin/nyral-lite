@@ -41,6 +41,13 @@ internal class DefaultServiceRegistry : ServiceRegistry {
         return list.map { it.instance as T }
     }
 
+    /** 移除某个已注册实例（按引用）；插件卸载时由内核调用。 */
+    internal fun remove(type: KClass<*>, instance: Any) {
+        val list = definitions[type] ?: return
+        list.removeAll { it.instance === instance }
+        if (list.isEmpty()) definitions.remove(type)
+    }
+
     /** 插件侧访问：未声明服务所需权限则抛 SecurityException。 */
     fun <T : Any> getFor(consumer: PluginManifest, type: KClass<T>): T =
         getOrNullFor(consumer, type)
