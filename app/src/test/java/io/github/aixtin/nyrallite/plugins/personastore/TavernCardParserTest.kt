@@ -19,6 +19,7 @@ class TavernCardParserTest {
         assertEquals("长描述", card.description)
         assertEquals("用户：你好\n萌主：你好", card.exampleDialogue)
         assertEquals("每句话尽量短", card.voiceContent)
+        assertEquals("你好呀", card.firstMessage)
     }
 
     @Test
@@ -69,6 +70,7 @@ class TavernCardParserTest {
                 "scenario":"未来",
                 "description":"长描述",
                 "mes_example":"用户：你好\n萌主：你好",
+                "first_mes":"你好呀",
                 "extensions":{"operit":{"character_card":{
                   "otherContentVoice":"每句话尽量短"
                 }}}

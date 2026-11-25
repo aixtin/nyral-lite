@@ -13,6 +13,8 @@ data class PersonaCard(
     val description: String = "",
     val exampleDialogue: String = "",
     val voiceContent: String = "",
+    /** 角色卡的开场白：换人设新开会话时作为第一条 AI 消息插入。 */
+    val firstMessage: String = "",
     val mode: PersonaMode = PersonaMode.SHORT,
 )
 

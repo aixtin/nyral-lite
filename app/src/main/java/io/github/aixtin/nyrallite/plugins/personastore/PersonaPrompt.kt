@@ -31,8 +31,8 @@ object PersonaPrompt {
         }
     }
 
-    /** SillyTavern 占位符：存储保留原文，只在注入时替换成角色名与「你」。 */
-    private fun fill(text: String, card: PersonaCard): String = text
+    /** 占位符替换：{{char}} → 角色名，{{user}} → 「你」。存储保留原文。 */
+    fun fill(text: String, card: PersonaCard): String = text
         .replace(CHAR_TOKEN, Regex.escapeReplacement(card.name))
         .replace(USER_TOKEN, "你")
 

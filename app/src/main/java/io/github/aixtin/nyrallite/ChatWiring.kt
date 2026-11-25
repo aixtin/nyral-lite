@@ -113,9 +113,12 @@ internal class ChatWiring(
         loadDraft()
         input.doAfterTextChanged { sessions.scheduleDraftSave(it?.toString().orEmpty()) }
         history = HistorySwitcher(activity, sessions, controller::replaceSession, ::loadDraft)
-        persona = PersonaSwitcher(activity, sessions, controller::replaceSession, ::loadDraft) {
-            messages.isNotEmpty()
-        }
+        persona = PersonaSwitcher(
+            activity, sessions, controller::replaceSession, ::loadDraft,
+            hasMessages = { messages.isNotEmpty() },
+            greetingOf = { id -> PersonaGreeting.of(activity.application as App, id) },
+            insertGreeting = controller::insertGreeting,
+        )
     }
 
     fun openHistory() = history.launch()

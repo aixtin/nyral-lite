@@ -30,6 +30,7 @@ class PersonaEditActivity : AppCompatActivity() {
     private lateinit var description: EditText
     private lateinit var example: EditText
     private lateinit var voice: EditText
+    private lateinit var firstMessage: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +57,7 @@ class PersonaEditActivity : AppCompatActivity() {
         description = content.field(R.string.persona_field_description, original.description)
         example = content.field(R.string.persona_field_example, original.exampleDialogue)
         voice = content.field(R.string.persona_field_voice, original.voiceContent)
+        firstMessage = content.field(R.string.persona_field_first, original.firstMessage)
         content.addView(Button(this).apply {
             text = getString(R.string.persona_save)
             setOnClickListener { save() }
@@ -87,6 +89,7 @@ class PersonaEditActivity : AppCompatActivity() {
                 description = description.text.toString().trim(),
                 exampleDialogue = example.text.toString().trim(),
                 voiceContent = voice.text.toString().trim(),
+                firstMessage = firstMessage.text.toString().trim(),
             ),
         )
         Toast.makeText(this, R.string.persona_saved, Toast.LENGTH_SHORT).show()

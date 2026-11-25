@@ -17,6 +17,10 @@ internal class PersonaSwitcher(
     private val onLoad: (List<Message>) -> Unit,
     private val restoreDraft: () -> Unit,
     private val hasMessages: () -> Boolean,
+    /** 取该人设的开场白；无人设或无开场白时为空串。 */
+    private val greetingOf: (String?) -> String,
+    /** 把开场白插到空会话第一条；会话已有内容时由实现自行忽略。 */
+    private val insertGreeting: (String) -> Unit,
 ) {
     private val launcher = activity.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -54,9 +58,11 @@ internal class PersonaSwitcher(
     private fun apply(id: String?, newSession: Boolean) {
         if (newSession) {
             sessions.newSession(onLoad)
+            insertGreeting(greetingOf(id))
             restoreDraft()
         } else {
             sessions.setPersona(id)
+            insertGreeting(greetingOf(id))
         }
         Toast.makeText(
             activity,

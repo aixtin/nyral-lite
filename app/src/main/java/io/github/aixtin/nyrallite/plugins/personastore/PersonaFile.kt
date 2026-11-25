@@ -33,6 +33,7 @@ internal object PersonaFile {
                     description = o.optString("description"),
                     exampleDialogue = o.optString("exampleDialogue"),
                     voiceContent = o.optString("voiceContent"),
+                    firstMessage = o.optString("firstMessage"),
                     mode = runCatching {
                         PersonaMode.valueOf(o.optString("mode", "SHORT"))
                     }.getOrDefault(PersonaMode.SHORT),
@@ -56,6 +57,7 @@ internal object PersonaFile {
                     .put("description", card.description)
                     .put("exampleDialogue", card.exampleDialogue)
                     .put("voiceContent", card.voiceContent)
+                    .put("firstMessage", card.firstMessage)
                     .put("mode", card.mode.name),
             )
         }

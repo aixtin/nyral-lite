@@ -142,6 +142,7 @@
     <string name="persona_field_description">角色描述（description）</string>
     <string name="persona_field_example">对话示例（mes_example）</string>
     <string name="persona_field_voice">语音与互动要求（otherContentVoice）</string>
+    <string name="persona_field_first">开场白（first_mes，新会话第一条消息）</string>
     <string name="persona_switch_message">当前会话已有消息。为避免不同人设混入同一段历史，默认新开会话；也可以只让当前会话的后续请求使用新选择。</string>
     <string name="persona_new_session">新开会话（默认）</string>
     <string name="persona_keep_session">仅当前会话后续生效</string>

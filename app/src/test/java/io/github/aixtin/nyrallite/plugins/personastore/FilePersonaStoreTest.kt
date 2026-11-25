@@ -19,7 +19,7 @@ class FilePersonaStoreTest {
     fun persistsCardsModeAndSingleDefault() {
         val file = File(tmp.root, "personas.json")
         val store = FilePersonaStore(file)
-        store.upsert(PersonaCard(id = "a", name = "甲"))
+        store.upsert(PersonaCard(id = "a", name = "甲", firstMessage = "你好呀"))
         store.upsert(PersonaCard(id = "b", name = "乙"))
         store.setDefault("a")
         store.setDefault("b")
@@ -28,6 +28,7 @@ class FilePersonaStoreTest {
         val restored = FilePersonaStore(file)
         assertEquals("b", restored.defaultId)
         assertEquals(PersonaMode.LONG, restored.get("b")?.mode)
+        assertEquals("你好呀", restored.get("a")?.firstMessage)
         assertEquals(2, restored.all().size)
 
         restored.delete("b")

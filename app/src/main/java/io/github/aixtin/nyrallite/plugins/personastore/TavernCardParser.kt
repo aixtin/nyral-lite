@@ -28,6 +28,7 @@ object TavernCardParser {
             description = clean(data.optString("description")),
             exampleDialogue = clean(data.optString("mes_example")),
             voiceContent = clean(operit?.optString("otherContentVoice").orEmpty()),
+            firstMessage = clean(data.optString("first_mes")),
         )
         // 只有长描述、没有短字段的卡（chub 上很常见）直接进长档，否则短档注入为空
         val shortEmpty = card.systemPrompt.isBlank() &&
