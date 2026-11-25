@@ -26,3 +26,15 @@ keystore.properties
 
 # 运行期输出
 *.log
+*.tmp
+
+# 备份与归档
+*.bundle
+*.tgz
+*.tar.gz
+backups/
+temp/
+scripts_archive/
+
+# 环境变量
+.env
