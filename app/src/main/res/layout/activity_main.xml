@@ -120,71 +120,6 @@
         android:paddingBottom="4dp"
         android:background="@color/bg">
 
-        <!-- 输入框上方工具栏：插件入口，后续可继续添加工具 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="6dp">
-
-            <TextView
-                android:id="@+id/toolbar_plugins"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:paddingHorizontal="12dp"
-                android:gravity="center"
-                android:text="@string/bar_plugins"
-                android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="@drawable/bg_bar_item" />
-
-            <TextView
-                android:id="@+id/toolbar_history"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginStart="8dp"
-                android:paddingHorizontal="12dp"
-                android:gravity="center"
-                android:text="@string/bar_history"
-                android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="@drawable/bg_bar_item" />
-
-            <TextView
-                android:id="@+id/toolbar_memory"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginStart="8dp"
-                android:paddingHorizontal="12dp"
-                android:gravity="center"
-                android:text="@string/bar_memory"
-                android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="@drawable/bg_bar_item" />
-
-            <TextView
-                android:id="@+id/toolbar_persona"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginStart="8dp"
-                android:paddingHorizontal="12dp"
-                android:gravity="center"
-                android:text="@string/bar_persona"
-                android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="@drawable/bg_bar_item" />
-        </LinearLayout>
-
         <!-- 待发送图片：横向缩略图条，为空时整条隐藏 -->
         <HorizontalScrollView
             android:id="@+id/attach_scroll"
@@ -273,19 +208,88 @@
                 android:backgroundTint="@color/brand" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/bar_gate"
-            android:layout_width="wrap_content"
-            android:layout_height="30dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="6dp"
-            android:paddingHorizontal="12dp"
-            android:gravity="center"
-            android:text="@string/bar_gate"
-            android:textSize="12sp"
-            android:textColor="@color/bar_action_text"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="@drawable/bg_bar_item" />
+        <!-- 底部辅助行：左侧导航（轻量文字），右侧门禁状态（胶囊，带状态文案） -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/toolbar_plugins"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
+                android:paddingHorizontal="8dp"
+                android:gravity="center"
+                android:text="@string/bar_plugins"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/toolbar_history"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
+                android:paddingHorizontal="8dp"
+                android:gravity="center"
+                android:text="@string/bar_history"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/toolbar_memory"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
+                android:paddingHorizontal="8dp"
+                android:gravity="center"
+                android:text="@string/bar_memory"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/toolbar_persona"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:paddingHorizontal="8dp"
+                android:gravity="center"
+                android:text="@string/bar_persona"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/bar_gate"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:paddingHorizontal="12dp"
+                android:gravity="center"
+                android:text="@string/bar_gate"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_bar_item" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>
