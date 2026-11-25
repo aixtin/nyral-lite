@@ -113,6 +113,18 @@ class Kernel(
 
     fun isInstalled(pluginId: String): Boolean = handles[pluginId]?.installed == true
 
+    /** 主体侧读取某插件的配置视图：与插件拿到的同一命名空间，用于配置面板读写。 */
+    fun configOf(pluginId: String): PluginConfig = configStore.forPlugin(pluginId)
+
+    /**
+     * 读取已安装插件的配置面板描述。
+     * 未安装、未实现 [ConfigurablePlugin]、或 panel() 抛异常时返回 null（面板失败不影响插件本身）。
+     */
+    fun panelOf(pluginId: String): PanelSpec? {
+        val plugin = handles[pluginId]?.plugin as? ConfigurablePlugin ?: return null
+        return runCatching { plugin.panel() }.getOrNull()
+    }
+
     /** 列出所有已安装插件的 manifest（快照，不随后续 uninstall 自动更新）。 */
     fun installedManifests(): List<PluginManifest> =
         handles.values.map { it.manifest }

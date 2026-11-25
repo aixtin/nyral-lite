@@ -31,7 +31,17 @@ class ExternalPluginPanel(
             return
         }
         for (record in records) {
-            container.addView(rows.build(record, app.kernel.isInstalled(record.id)))
+            val installed = app.kernel.isInstalled(record.id)
+            // 只有已安装（运行中）的插件才能拿到面板描述；未实现 ConfigurablePlugin 时显示按钮也没意义
+            val spec = if (installed) app.kernel.panelOf(record.id) else null
+            val configure: (() -> Unit)? = spec?.let { s ->
+                {
+                    PluginPanelDialog.show(activity, record.id, s, app.kernel.configOf(record.id)) {
+                        onStatus("已保存 ${record.id} 的配置", false)
+                    }
+                }
+            }
+            container.addView(rows.build(record, installed, configure))
         }
     }
 

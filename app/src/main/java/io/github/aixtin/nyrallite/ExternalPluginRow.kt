@@ -17,7 +17,11 @@ internal class ExternalPluginRow(
     private val onToggle: (ExternalPluginRecord, Boolean, SwitchCompat) -> Unit,
 ) {
 
-    fun build(record: ExternalPluginRecord, installed: Boolean): LinearLayout =
+    fun build(
+        record: ExternalPluginRecord,
+        installed: Boolean,
+        onConfigure: (() -> Unit)?,
+    ): LinearLayout =
         LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             background = ContextCompat.getDrawable(activity, R.drawable.bg_card)
@@ -27,7 +31,7 @@ internal class ExternalPluginRow(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
             ).apply { bottomMargin = dp(8) }
 
-            addView(header(record))
+            addView(header(record, onConfigure))
             addView(status(record, installed))
         }
 
@@ -38,7 +42,10 @@ internal class ExternalPluginRow(
         alpha = 0.5f
     }
 
-    private fun header(record: ExternalPluginRecord): LinearLayout =
+    private fun header(
+        record: ExternalPluginRecord,
+        onConfigure: (() -> Unit)?,
+    ): LinearLayout =
         LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -57,6 +64,17 @@ internal class ExternalPluginRow(
                     )
                 },
             )
+            if (onConfigure != null) {
+                addView(
+                    Button(activity).apply {
+                        text = "设置"
+                        textSize = 12f
+                        minWidth = 0
+                        minimumWidth = 0
+                        setOnClickListener { onConfigure() }
+                    },
+                )
+            }
             addView(
                 Button(activity).apply {
                     text = "移除"

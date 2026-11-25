@@ -52,6 +52,7 @@ now-plugin/
         │   ├── Permission.kt
         │   ├── ServiceRegistry.kt
         │   ├── PluginConfig.kt
+        │   ├── PluginPanel.kt        ← 需要配置面板才复制
         │   ├── GateBus.kt
         │   ├── EventBus.kt
         │   └── Disposable.kt
@@ -373,14 +374,62 @@ ctx.effect { fg.stopTask("now-plugin-timer") }  // 卸载时自动停
 
 ---
 
-## 6. 配置持久化
+## 6. 配置持久化与配置面板
+
+### 6.1 读写配置
 
 ```kotlin
 val endpoint = ctx.config.getString("endpoint", "")
 ctx.config.put("endpoint", "https://example.com/api")
 ```
 
-key 自动带插件命名空间（`plugin.<id>.<key>`），不同插件互不干扰，卸载不会自动清理（需要时自己 `remove`）。
+key 自动带插件命名空间（`<pluginId>/<key>`），不同插件互不干扰，卸载不会自动清理（需要时自己 `remove`）。
+
+> 约定：**每次使用时重新读配置**（不要在 `install()` 里读一次缓存），这样面板保存后下一次调用立即生效，无需重启。
+
+### 6.2 声明式配置面板（不用写 UI）
+
+外部插件不能自带 Activity，配置界面由宿主统一渲染。插件只要额外实现 `ConfigurablePlugin`：
+
+```kotlin
+class NowPlugin : Plugin, ConfigurablePlugin {
+    // ... manifest / install 同前
+
+    override fun panel(): PanelSpec = PanelSpec(
+        title = "Now 插件配置",
+        fields = listOf(
+            PanelField.Text(key = "api_base", label = "API 地址", placeholder = "https://example.com/api"),
+            PanelField.Secret(key = "api_key", label = "API Key"),
+            PanelField.Switch(key = "verbose", label = "详细日志", default = false),
+            PanelField.Select(
+                key = "lang",
+                label = "结果语言",
+                options = listOf(
+                    PanelField.Select.Option("zh", "中文"),
+                    PanelField.Select.Option("en", "英文"),
+                ),
+                default = "zh",
+            ),
+        ),
+    )
+}
+```
+
+| 字段类型 | 宿主控件 | 存储值 |
+|---|---|---|
+| `Text` | 单行输入框 | 原文 |
+| `Secret` | 密码输入框（默认打码，可勾选显示明文） | 原文 |
+| `Switch` | 开关 | `"true"` / `"false"` |
+| `Select` | 下拉单选 | 选中项的 `value` |
+
+规则与坑：
+
+- 「设置」按钮只在插件**已安装（运行中）**时出现；禁用后按钮隐藏，先启用再改配置。
+- 未实现 `ConfigurablePlugin` 或 `panel()` 抛异常时不显示按钮，也不影响插件本身运行（渲染崩溃被隔离）。
+- `key` 与 `ctx.config` 共用同一个命名空间：面板存进去的值，插件代码直接 `getString` 就能读到。
+- **不要在 `install()` 里因为配置为空就抛异常**：那会导致安装失败、连面板入口都进不去。读到空值时用默认值，等工具被调用时再提示用户去配置。
+- `Secret` 字段不要回显到工具结果或日志里（示例插件只回显 API 地址是否配置）。
+- 复杂交互（地图选点、文件选择等）暂不开放自定义 View，只有 `Text/Secret/Switch/Select` 四种；确实需要时再和宿主一起设计。
 
 ---
 
@@ -480,6 +529,7 @@ adb shell dumpsys package io.github.aixtin.nyrallite | head -5
 |---|---|
 | 最小插件工程（含契约副本与 `assets/plugin-entry.txt`） | `testplugin/` |
 | 契约定义 | `app/src/main/java/io/github/aixtin/nyrallite/kernel/` |
+| 配置面板契约（`ConfigurablePlugin` / `PanelSpec` / `PanelField`） | `app/src/main/java/io/github/aixtin/nyrallite/kernel/PluginPanel.kt` |
 | 工具契约 | `app/src/main/java/io/github/aixtin/nyrallite/contract/ToolSource.kt` 等 |
 | 内置工具示例（系统能力包装成工具） | `app/src/main/java/io/github/aixtin/nyrallite/plugins/system/SystemToolSource.kt` |
 | 远程 MCP 工具示例（含门禁与超时） | `app/src/main/java/io/github/aixtin/nyrallite/plugins/mcpclient/McpToolRegistry.kt` |
@@ -535,4 +585,6 @@ interface ToolSource {
 - [ ] 业务失败返回 `ToolResult(isError = true)`，不抛异常
 - [ ] 调用前过 `ctx.gates.check(ToolCallRequest(...))`
 - [ ] 长任务/线程用 `ctx.effect { ... }` 注册回收
+- [ ] 需要用户填参数时实现 `ConfigurablePlugin`，`install()` 不因配置为空而失败
+- [ ] `Secret` 字段不回显到工具结果与日志
 - [ ] 安装到手机，聊天里让模型调用一次，确认工具卡片成功
