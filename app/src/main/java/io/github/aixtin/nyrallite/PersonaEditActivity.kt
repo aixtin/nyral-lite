@@ -31,6 +31,7 @@ class PersonaEditActivity : AppCompatActivity() {
     private lateinit var example: EditText
     private lateinit var voice: EditText
     private lateinit var firstMessage: EditText
+    private lateinit var avatarPicker: PersonaAvatarPicker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +50,8 @@ class PersonaEditActivity : AppCompatActivity() {
         content.addView(label(getString(if (id == null) R.string.persona_create_title else R.string.persona_edit_title), 20f))
         name = content.field(R.string.persona_field_name, original.name, 1)
         name.hint = getString(R.string.persona_name_hint)
+        avatarPicker = PersonaAvatarPicker(this, original.id)
+        content.addView(avatarPicker.view)
         content.addView(label(getString(R.string.persona_short)))
         system = content.field(R.string.persona_field_system, original.systemPrompt)
         personality = content.field(R.string.persona_field_personality, original.personality)
@@ -92,6 +95,7 @@ class PersonaEditActivity : AppCompatActivity() {
                 firstMessage = firstMessage.text.toString().trim(),
             ),
         )
+        avatarPicker.save()
         Toast.makeText(this, R.string.persona_saved, Toast.LENGTH_SHORT).show()
         finish()
     }
