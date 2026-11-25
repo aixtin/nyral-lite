@@ -10,4 +10,5 @@
     <color name="bar_action_text_muted">#731A1A1A</color>
     <color name="tool_ok">#2E7D32</color>
     <color name="tool_fail">#C62828</color>
+    <color name="warning_bg">#FFF4E5</color>
 </resources>

@@ -54,12 +54,19 @@ class McpConfigActivity : AppCompatActivity() {
         }
         status.setText(R.string.cfg_mcp_testing)
         btn.isEnabled = false
+        val draft = form.draft()
         scope.launch {
-            val result = probe.probe(form.draft())
+            val result = probe.probe(draft)
             btn.isEnabled = true
-            status.text = result.error
-                ?.let { getString(R.string.cfg_mcp_fail, it.take(200)) }
-                ?: getString(R.string.cfg_mcp_ok, result.tools.size)
+            val fail = result.error?.let { error ->
+                getString(R.string.cfg_mcp_fail, error.take(200)) +
+                    if (draft.serverUrl.trimEnd('/').endsWith("/sse")) {
+                        "\n" + getString(R.string.cfg_mcp_sse_hint)
+                    } else {
+                        ""
+                    }
+            } ?: getString(R.string.cfg_mcp_ok, result.tools.size)
+            status.text = fail
         }
     }
 

@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var scrollButton: ScrollToBottomButton
     private lateinit var gateSwitch: GateModeSwitch
     private lateinit var header: PersonaHeader
+    private lateinit var mcpWarning: McpWarningBar
     private lateinit var input: EditText
     private lateinit var voice: VoiceInput
 
@@ -56,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         input = findViewById(R.id.input)
         val btnSend = findViewById<Button>(R.id.btn_send)
         header = PersonaHeader.attach(this)
+        mcpWarning = McpWarningBar.attach(this)
 
         attachmentStores = kernel.services.get<AttachmentStores>()
         attachments = ImageAttachments(this, attachmentStores) { composerAttachments.render(it) }
@@ -63,6 +65,7 @@ class MainActivity : AppCompatActivity() {
             header.refresh(wiring.sessions.currentPersonaId)
         }
         wiring.start()
+        wiring.controller.onToolsWarning = mcpWarning::show
 
         btnSend.setOnClickListener {
             wiring.controller.onSendButtonClick()

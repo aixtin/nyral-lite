@@ -22,19 +22,15 @@ internal class ChatRound(
     private val transport: ChatTransport,
     private val currentPersonaId: () -> String?,
     private val sessionSummary: () -> String,
+    /** 工具来源告警：null 表示恢复正常，用于显示/收起标题栏提示。 */
+    private val onToolsWarning: (String?) -> Unit = {},
 ) {
 
     suspend fun run() {
         try {
             val load = runner.loadSpecs()
-            // 配置了服务器却拉不到工具时给出可见提示，避免静默降级
-            load.error?.let { error ->
-                Toast.makeText(
-                    state.activity,
-                    state.activity.getString(R.string.mcp_tools_failed, error.take(120)),
-                    Toast.LENGTH_LONG,
-                ).show()
-            }
+            // 某个来源（多半是 MCP）失败时挂常驻告警条，其它工具照常可用
+            onToolsWarning(load.error)
             val tools = load.specs
             var round = 0
             while (true) {

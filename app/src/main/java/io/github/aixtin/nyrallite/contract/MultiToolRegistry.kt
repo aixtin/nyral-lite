@@ -12,26 +12,37 @@ package io.github.aixtin.nyrallite.contract
  */
 class MultiToolRegistry(
     private val sources: () -> List<ToolSource>,
-) : ToolRegistry {
+) : ToolRegistry, ToolSourceHealth {
+
+    /** 最近一次 list() 的失败原因；只在主线程读取，写入都在 IO 线程。 */
+    private val errors = mutableListOf<String>()
 
     override suspend fun list(): List<ToolSpec> {
         val all = ArrayList<ToolSpec>()
         val seen = HashSet<String>()
+        val failed = ArrayList<String>()
         for (source in sources()) {
             // 单个来源（如远程 MCP 断网）失败不能拖垮其它来源的工具，这里逐个隔离
             val tools = try {
                 source.list()
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                failed.add(e.message ?: e.toString())
                 continue
             }
             for (tool in tools) {
                 if (seen.add(tool.name)) all.add(tool)
             }
         }
+        synchronized(errors) {
+            errors.clear()
+            errors.addAll(failed)
+        }
         return all
     }
+
+    override fun lastErrors(): List<String> = synchronized(errors) { errors.toList() }
 
     override suspend fun call(name: String, argumentsJson: String): ToolResult {
         for (source in sources()) {

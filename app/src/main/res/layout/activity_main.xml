@@ -59,6 +59,20 @@
         </LinearLayout>
     </FrameLayout>
 
+    <!-- 工具来源告警：MCP 等来源拉取失败时常驻，点击进 MCP 设置 -->
+    <TextView
+        android:id="@+id/mcp_warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/warning_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:textColor="@color/tool_fail"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"

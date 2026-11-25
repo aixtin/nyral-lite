@@ -57,8 +57,11 @@ class ChatController(
     private val flow: RoundFlow = RoundFlow(state, typewriter, onRoundEnd)
     private val round = ChatRound(
         state, typewriter, flow, runner, transport, currentPersonaId, sessionSummary,
-    )
+    ) { message -> onToolsWarning?.invoke(message) }
     private val sender = ChatSender(state, flow, round, takePendingAttachments)
+
+    /** 工具来源告警（多半是 MCP 连不上）：null 表示已恢复，由界面注入。 */
+    var onToolsWarning: ((String?) -> Unit)? = null
 
     /** 用户手指/惯性滚动进行中：暂停流式渲染。 */
     var listScrolling: Boolean

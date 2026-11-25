@@ -6,6 +6,7 @@ import io.github.aixtin.nyrallite.contract.ToolCall
 import io.github.aixtin.nyrallite.contract.ToolRegistry
 import io.github.aixtin.nyrallite.contract.ToolResult
 import io.github.aixtin.nyrallite.contract.ToolSpec
+import io.github.aixtin.nyrallite.contract.ToolSourceHealth
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,7 +30,10 @@ class ToolRoundRunner(
     suspend fun loadSpecs(): ToolLoad {
         val current = registry ?: return ToolLoad(emptyList())
         return try {
-            ToolLoad(current.list())
+            // 聚合注册表会隔离单个来源的失败，原因从健康接口补读，避免静默降级
+            val specs = current.list()
+            val warning = (current as? ToolSourceHealth)?.lastErrors()?.firstOrNull()
+            ToolLoad(specs, warning)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

@@ -37,8 +37,9 @@
     <string name="cfg_mcp_testing">正在连接 MCP 服务器…</string>
     <string name="cfg_mcp_ok">已连接，共 %1$d 个工具</string>
     <string name="cfg_mcp_fail">连接失败：%1$s</string>
+    <string name="cfg_mcp_sse_hint">这个地址像是旧版 SSE 传输，请改用服务端的 /mcp 地址</string>
     <string name="cfg_mcp_probe_unavailable">当前版本不支持连接测试</string>
-    <string name="mcp_tools_failed">MCP 工具加载失败：%1$s</string>
+    <string name="mcp_tools_failed">MCP 工具未加载：%1$s（点此检查）</string>
     <string name="cfg_save">保存并开始</string>
     <string name="cfg_key_required">请先填写 API Key</string>
 
