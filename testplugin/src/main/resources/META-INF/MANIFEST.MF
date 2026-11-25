@@ -1,0 +1,1 @@
+Plugin-Entry: io.github.aixtin.nyrallite.testplugin.HelloPlugin

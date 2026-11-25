@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AI 消息布局：无气泡。正文全宽平铺（类似主流 AI 助手的回复），不再有圆角背景和宽度上限。
+
+  思考区 = 一条单行摘要栏 (位置/字号全程不变, 流式→结束只换文案, 无视图切换):
+    流式中  : "思考中..."            (灰色, 无箭头, 不可点)
+    结束后  : 首句摘要 …（N字）  ›   (点击展开/收起下方抽屉)
+    展开时  : 同上 + 箭头转向下, 下方出现限高滚动抽屉 (最多 200dp, 内部滚动)
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="6dp">
+
+    <LinearLayout
+        android:id="@+id/bubble"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- ===== 思考摘要栏 (唯一视图, 三态只改文案与箭头) ===== -->
+        <LinearLayout
+            android:id="@+id/thinking_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="2dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/thinking_label"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="#A0A0A0"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <ImageView
+                android:id="@+id/thinking_arrow"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginStart="3dp"
+                android:src="@drawable/ic_arrow_up"
+                android:rotation="90"
+                android:contentDescription="展开" />
+        </LinearLayout>
+
+        <!-- ===== 展开抽屉 (限高, 内部滚动) ===== -->
+        <io.github.aixtin.nyrallite.MaxHeightScrollView
+            android:id="@+id/thinking_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_thinking_sheet"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/thinking_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="8dp"
+                android:textSize="13sp"
+                android:textColor="#666666"
+                android:lineSpacingExtra="2dp" />
+        </io.github.aixtin.nyrallite.MaxHeightScrollView>
+
+        <!-- 正文容器 -->
+        <LinearLayout
+            android:id="@+id/ai_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+</FrameLayout>

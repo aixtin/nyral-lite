@@ -1,0 +1,28 @@
+# Gradle / 构建产物
+.gradle/
+build/
+**/build/
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+*.hprof
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# 本地环境与签名（绝不入库）
+local.properties
+keystore.properties
+*.jks
+*.keystore
+
+# 安装包与插件包
+*.apk
+*.aab
+*.apks
+
+# 运行期输出
+*.log

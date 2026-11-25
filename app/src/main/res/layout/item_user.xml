@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="5dp"
+    android:gravity="end">
+
+    <LinearLayout
+        android:id="@+id/user_body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="320dp"
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <!-- 附件缩略图：按行动态填充，1 张时单张，多张时两列 -->
+        <LinearLayout
+            android:id="@+id/user_attachments"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/user_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_user"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="10dp"
+            android:textColor="@color/user_text"
+            android:textSize="15sp"
+            android:lineSpacingExtra="3dp" />
+    </LinearLayout>
+</LinearLayout>

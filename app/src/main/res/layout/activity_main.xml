@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/bg">
+        <TextView
+            android:id="@+id/title_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/app_name"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/ai_text"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:background="?attr/selectableItemBackground" />
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/divider" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingVertical="12dp" />
+
+        <!-- 回到底部：不常驻，用户上滑离开底部时才出现，停手一会儿自动消失 -->
+        <ImageView
+            android:id="@+id/btn_scroll_bottom"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:padding="9dp"
+            android:background="@drawable/bg_scroll_bottom"
+            android:contentDescription="@string/scroll_to_bottom"
+            android:elevation="4dp"
+            android:rotation="180"
+            android:src="@drawable/ic_arrow_up"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/divider" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        android:background="@color/bg">
+
+        <!-- 输入框上方工具栏：插件入口，后续可继续添加工具 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:id="@+id/toolbar_plugins"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:paddingHorizontal="12dp"
+                android:gravity="center"
+                android:text="@string/bar_plugins"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_bar_item" />
+
+            <TextView
+                android:id="@+id/toolbar_history"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="8dp"
+                android:paddingHorizontal="12dp"
+                android:gravity="center"
+                android:text="@string/bar_history"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_bar_item" />
+
+            <TextView
+                android:id="@+id/toolbar_memory"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="8dp"
+                android:paddingHorizontal="12dp"
+                android:gravity="center"
+                android:text="@string/bar_memory"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_bar_item" />
+
+            <TextView
+                android:id="@+id/toolbar_persona"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="8dp"
+                android:paddingHorizontal="12dp"
+                android:gravity="center"
+                android:text="@string/bar_persona"
+                android:textSize="12sp"
+                android:textColor="@color/bar_action_text"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/bg_bar_item" />
+        </LinearLayout>
+
+        <!-- 待发送图片：横向缩略图条，为空时整条隐藏 -->
+        <HorizontalScrollView
+            android:id="@+id/attach_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="6dp"
+            android:scrollbars="none"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/attach_strip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="2dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_ai"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp">
+
+                <TextView
+                    android:id="@+id/bar_attach"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:gravity="center"
+                    android:text="@string/attach_add"
+                    android:textSize="20sp"
+                    android:textColor="@color/bar_action_text_muted"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/attach_add_desc"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
+
+                <EditText
+                    android:id="@+id/input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:paddingVertical="10dp"
+                    android:hint="@string/hint_input"
+                    android:textColorHint="#9AA0A6"
+                    android:textColor="@color/ai_text"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:maxLines="5" />
+
+                <TextView
+                    android:id="@+id/bar_voice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:paddingHorizontal="8dp"
+                    android:gravity="center"
+                    android:text="@string/bar_voice"
+                    android:textSize="12sp"
+                    android:textColor="@color/bar_action_text_muted"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_send"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:minWidth="64dp"
+                android:text="@string/send"
+                android:textColor="@color/user_text"
+                android:backgroundTint="@color/brand" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/bar_gate"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="6dp"
+            android:paddingHorizontal="12dp"
+            android:gravity="center"
+            android:text="@string/bar_gate"
+            android:textSize="12sp"
+            android:textColor="@color/bar_action_text"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/bg_bar_item" />
+    </LinearLayout>
+</LinearLayout>

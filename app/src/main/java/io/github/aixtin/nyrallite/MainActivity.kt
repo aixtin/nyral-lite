@@ -1,0 +1,140 @@
+package io.github.aixtin.nyrallite
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.RecyclerView
+import io.github.aixtin.nyrallite.contract.ApiConfigStore
+import io.github.aixtin.nyrallite.contract.AttachmentStores
+import io.github.aixtin.nyrallite.contract.SecuritySettingsStore
+import io.github.aixtin.nyrallite.kernel.get
+import io.github.aixtin.nyrallite.kernel.getOrNull
+import io.github.aixtin.nyrallite.plugins.voicestt.SpeechRecognizerFactory
+
+/**
+ * 只做界面装配：布局、按钮入口与生命周期转发；
+ * 会话与聊天流的装配在 [ChatWiring]，附件在 [ImageAttachments]，语音在 [VoiceInput]。
+ */
+class MainActivity : AppCompatActivity() {
+
+    private val messages = mutableListOf<Message>()
+    private lateinit var wiring: ChatWiring
+    private lateinit var scrollButton: ScrollToBottomButton
+    private lateinit var gateSwitch: GateModeSwitch
+    private lateinit var input: EditText
+    private lateinit var voice: VoiceInput
+
+    private lateinit var attachmentStores: AttachmentStores
+    /** 待发送附件：选图即转码落盘，发送时整批交给 ChatController。 */
+    private lateinit var attachments: ImageAttachments
+    private lateinit var composerAttachments: ComposerAttachments
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        // 工具确认对话框需要前台界面：登记当前 Activity
+        (application as App).approval.attach(this)
+
+        // 消费状态栏 / 导航栏 / 键盘 inset: 标题栏不被遮挡, 输入栏跟随键盘抬起
+        val root = findViewById<View>(R.id.root)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            v.setPadding(v.paddingLeft, bars.top, v.paddingRight, maxOf(bars.bottom, ime.bottom))
+            insets
+        }
+
+        val rv = findViewById<RecyclerView>(R.id.list)
+        input = findViewById(R.id.input)
+        val btnSend = findViewById<Button>(R.id.btn_send)
+        val titleBar = findViewById<TextView>(R.id.title_bar)
+
+        attachmentStores = kernel.services.get<AttachmentStores>()
+        attachments = ImageAttachments(this, attachmentStores) { composerAttachments.render(it) }
+        wiring = ChatWiring(this, rv, input, btnSend, messages, attachments::take)
+        wiring.start()
+
+        btnSend.setOnClickListener {
+            wiring.controller.onSendButtonClick()
+            // 发送成功会清空输入框，立即清掉对应草稿，不等防抖
+            wiring.flushDraft()
+        }
+        // 点击顶部标题文字进入设置页
+        titleBar.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        // 门禁：单击循环切换档位并轻提示；长按进入门禁设置编辑白名单/禁止名单
+        val gateItem = findViewById<TextView>(R.id.bar_gate)
+        gateSwitch = GateModeSwitch(this, gateItem, kernel.services.get<SecuritySettingsStore>())
+        gateSwitch.refresh()
+        gateItem.setOnClickListener { gateSwitch.toggle() }
+        gateItem.setOnLongClickListener {
+            startActivity(Intent(this, SecurityConfigActivity::class.java))
+            true
+        }
+        findViewById<TextView>(R.id.toolbar_plugins).setOnClickListener {
+            startActivity(Intent(this, PluginsActivity::class.java))
+        }
+        findViewById<TextView>(R.id.toolbar_history).setOnClickListener { wiring.openHistory() }
+        findViewById<TextView>(R.id.toolbar_memory).setOnClickListener {
+            startActivity(Intent(this, MemoryActivity::class.java))
+        }
+        findViewById<TextView>(R.id.toolbar_persona).setOnClickListener {
+            wiring.persona.launch(wiring.sessions.currentPersonaId)
+        }
+        voice = VoiceInput(
+            this,
+            input,
+            findViewById(R.id.bar_voice),
+            kernel.services.getOrNull<SpeechRecognizerFactory>(),
+        )
+
+        composerAttachments = ComposerAttachments(
+            scroll = findViewById(R.id.attach_scroll),
+            strip = findViewById(R.id.attach_strip),
+            open = { ref -> attachmentStores.open(ref) },
+            onRemove = attachments::removeAt,
+        )
+        findViewById<TextView>(R.id.bar_attach).setOnClickListener { attachments.pick() }
+
+        scrollButton = ScrollToBottomButton(
+            rv = rv,
+            button = findViewById<ImageView>(R.id.btn_scroll_bottom),
+            onScrollStateChanged = { scrolling -> wiring.controller.listScrolling = scrolling },
+            onPinToBottom = wiring.controller::pinToBottom,
+        )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 历史页可能删掉了当前会话：回到主界面时切到空会话
+        wiring.resetIfMissing()
+        // 配置页可能改过档位，回来时刷新工具条
+        gateSwitch.refresh()
+        if (!kernel.services.get<ApiConfigStore>().isConfigured()) {
+            startActivity(Intent(this, ModelConfigActivity::class.java))
+        }
+    }
+
+    override fun onPause() {
+        // 切后台时立即保存，避免系统在防抖窗口内回收进程丢草稿
+        wiring.flushDraft()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        attachments.dispose()
+        voice.dispose()
+        (application as App).approval.detach(this)
+        wiring.dispose()
+        scrollButton.dispose()
+    }
+}

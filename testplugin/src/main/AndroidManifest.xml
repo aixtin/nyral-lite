@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 插件 APK 的 manifest 只给 aapt 用，DexPluginLoader 不读这个文件。 -->
+    <application />
+</manifest>

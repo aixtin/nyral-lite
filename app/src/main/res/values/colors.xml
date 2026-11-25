@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand">#2563EB</color>
+    <color name="bg">#FAFAFA</color>
+    <color name="ai_text">#1A1A1A</color>
+    <color name="user_text">#FFFFFF</color>
+    <color name="divider">#E5E5EA</color>
+    <color name="bar_outline">#D9D9DE</color>
+    <color name="bar_action_text">#BF1A1A1A</color>
+    <color name="bar_action_text_muted">#731A1A1A</color>
+    <color name="tool_ok">#2E7D32</color>
+    <color name="tool_fail">#C62828</color>
+</resources>
