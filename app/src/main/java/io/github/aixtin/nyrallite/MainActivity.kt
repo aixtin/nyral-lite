@@ -8,8 +8,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 import io.github.aixtin.nyrallite.contract.ApiConfigStore
 import io.github.aixtin.nyrallite.contract.AttachmentStores
@@ -44,16 +42,10 @@ class MainActivity : AppCompatActivity() {
         // 工具确认对话框需要前台界面：登记当前 Activity
         (application as App).approval.attach(this)
 
-        // 消费状态栏 / 导航栏 / 键盘 inset: 标题栏不被遮挡, 输入栏跟随键盘抬起
+        // 消费状态栏 / 导航栏 / 键盘 inset: 标题栏不被遮挡, 输入栏与贴底消息跟随键盘抬起
         val root = findViewById<View>(R.id.root)
-        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-            v.setPadding(v.paddingLeft, bars.top, v.paddingRight, maxOf(bars.bottom, ime.bottom))
-            insets
-        }
-
         val rv = findViewById<RecyclerView>(R.id.list)
+        KeyboardInsets(root, rv).install()
         input = findViewById(R.id.input)
         val btnSend = findViewById<Button>(R.id.btn_send)
         header = PersonaHeader.attach(this)
