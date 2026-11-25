@@ -125,6 +125,9 @@ class Typewriter(
     /** 瞬时贴底；实现见 [ScrollPinner]。 */
     fun pinToBottom() = ScrollPinner.pin(rv)
 
+    /** 会话加载后收敛贴底：超高条目一次补不到末尾会继续补；实现见 [ScrollPinner]。 */
+    fun pinToBottomStable() = ScrollPinner.pinStable(rv)
+
     /** 本帧布局完成后贴底；实现见 [ScrollPinner]。 */
     fun pinToBottomOnDraw() = ScrollPinner.pinOnDraw(rv)
 
