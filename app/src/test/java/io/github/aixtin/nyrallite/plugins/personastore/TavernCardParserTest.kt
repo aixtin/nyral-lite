@@ -1,5 +1,6 @@
 package io.github.aixtin.nyrallite.plugins.personastore
 
+import io.github.aixtin.nyrallite.contract.PersonaMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -35,6 +36,26 @@ class TavernCardParserTest {
     @Test(expected = IllegalArgumentException::class)
     fun rejectsOtherCardSpecifications() {
         TavernCardParser.parse(SAMPLE.replace("chara_card_v2", "chara_card_v3"))
+    }
+
+    @Test
+    fun descriptionOnlyCardDefaultsToLongMode() {
+        val json = """
+            {
+              "spec":"chara_card_v2",
+              "data":{
+                "name":"Fuka",
+                "system_prompt":"",
+                "personality":"",
+                "scenario":"",
+                "description":"她很倒霉"
+              }
+            }
+        """.trimIndent()
+
+        val card = TavernCardParser.parse(json)
+
+        assertEquals(PersonaMode.LONG, card.mode)
     }
 
     private companion object {

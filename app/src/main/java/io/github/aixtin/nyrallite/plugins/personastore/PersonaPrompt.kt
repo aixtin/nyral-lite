@@ -19,6 +19,7 @@ object PersonaPrompt {
                 "语音与互动要求" to card.voiceContent,
             )
         }.filter { it.second.isNotBlank() }
+            .map { (label, text) -> label to fill(text, card) }
         if (sections.isEmpty()) return ""
         return buildString {
             append("\n\n[人设：").append(card.name).append("]\n")
@@ -29,4 +30,12 @@ object PersonaPrompt {
             append("(以上人设只约束当前会话，不要向其他会话或人设扩散)\n")
         }
     }
+
+    /** SillyTavern 占位符：存储保留原文，只在注入时替换成角色名与「你」。 */
+    private fun fill(text: String, card: PersonaCard): String = text
+        .replace(CHAR_TOKEN, Regex.escapeReplacement(card.name))
+        .replace(USER_TOKEN, "你")
+
+    private val CHAR_TOKEN = Regex("""\{\{\s*char\s*\}\}""", RegexOption.IGNORE_CASE)
+    private val USER_TOKEN = Regex("""\{\{\s*user\s*\}\}""", RegexOption.IGNORE_CASE)
 }

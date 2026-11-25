@@ -47,4 +47,14 @@ class PersonaPromptTest {
     fun emptyModeDoesNotInjectAHeader() {
         assertTrue(PersonaPrompt.block(PersonaCard(id = "1", name = "空")).isEmpty())
     }
+
+    @Test
+    fun replacesCharacterAndUserPlaceholders() {
+        val block = PersonaPrompt.block(
+            card.copy(mode = PersonaMode.LONG, description = "{{char}} 看着 {{user}}"),
+        )
+
+        assertTrue(block.contains("测试 看着 你"))
+        assertFalse(block.contains("{{"))
+    }
 }
