@@ -4,9 +4,10 @@ import android.os.Handler
 import android.view.View
 
 /**
- * 思考区：一条单行摘要栏的三态控制 + 限高抽屉 + 流式省略号动画。
+ * 思考区：一条单行摘要栏的三态控制 + 限高抽屉 + 流式片段轮播。
  *
- * 流式中 : "思考中..." / "正在处理..."   灰色, 无箭头, 不可点
+ * 流式中 : 最新思考片段（20 字，180ms 淡入淡出，句末即时切、其余 600ms 节流）+ 右侧字数
+ * 首包前 : "正在处理..." 省略号动画，避免界面看起来像卡死
  * 结束后 : 首句摘要 …（N字） ›          点击展开/收起
  * 展开时 : 摘要行下方出现限高滚动抽屉
  *
@@ -19,11 +20,15 @@ internal class ThinkingRow(
 ) {
     private var phase = PHASE_NONE
     private var animMsg: Message? = null
+    private var lastSnippet = ""
+    private var lastSnippetNs = 0L
+
     private val animator = ThinkingAnimator(
         handler = handler,
         onTick = { dots ->
-            holder.label.text =
-                (if (phase == PHASE_PENDING) "正在处理" else "思考中") + ".".repeat(dots)
+            holder.label.setCurrentText(
+                (if (phase == PHASE_PENDING) "正在处理" else "思考中") + ".".repeat(dots),
+            )
         },
         isActive = { animMsg?.streaming == true },
     )
@@ -31,92 +36,90 @@ internal class ThinkingRow(
     /** 已写入抽屉的思考文本长度，避免重复 setText。 */
     private var textLastLength = -1
 
+    init {
+        holder.setupThinkingLabel()
+    }
+
     /** holder 复用时重置全部状态，防止 phase 相同走 early-return 显示陈旧内容。 */
     fun reset() {
         animator.stop()
         animMsg = null
         holder.row.visibility = View.GONE
         holder.scroll.visibility = View.GONE
+        holder.count.visibility = View.GONE
         holder.row.setOnClickListener(null)
         holder.row.isClickable = false
+        holder.label.setCurrentText("")
         phase = PHASE_NONE
         textLastLength = -1
+        lastSnippet = ""
     }
 
     fun updateThinking(msg: Message) {
         val target = targetPhase(msg)
         if (target == phase) {
-            // 同状态内只有展开抽屉的内容可能变化
-            if (target == PHASE_DONE && !msg.thinkingCollapsed &&
-                textLastLength != msg.thinking.length
-            ) {
-                holder.text.text = msg.thinking
-                textLastLength = msg.thinking.length
+            when (target) {
+                PHASE_STREAMING -> refreshSnippet(msg)
+                PHASE_DONE -> if (!msg.thinkingCollapsed &&
+                    textLastLength != msg.thinking.length
+                ) {
+                    holder.text.text = msg.thinking
+                    textLastLength = msg.thinking.length
+                }
             }
             return
         }
         val animate = phase != PHASE_NONE && holder.itemView.isLaidOut
         when (target) {
-            PHASE_NONE -> hide()
-            PHASE_STREAMING, PHASE_PENDING -> {
+            PHASE_NONE -> reset()
+            PHASE_PENDING, PHASE_STREAMING -> {
                 holder.row.visibility = View.VISIBLE
-                holder.label.setTextColor(0xFFA0A0A0.toInt())
-                holder.label.text = if (target == PHASE_PENDING) "正在处理" else "思考中"
                 holder.arrow.visibility = View.GONE
                 holder.scroll.visibility = View.GONE
                 holder.row.setOnClickListener(null)
                 holder.row.isClickable = false
                 animMsg = msg
-                animator.start()
+                if (target == PHASE_PENDING) {
+                    holder.count.visibility = View.GONE
+                    animator.start()
+                } else {
+                    // 有正文了：停掉省略号动画，改为轮播最新片段
+                    animator.stop()
+                    holder.count.visibility = View.VISIBLE
+                    lastSnippet = ""
+                    refreshSnippet(msg, force = true)
+                }
             }
             else -> {
                 // 结束：原地把同一行文案换成摘要，位置/字号不变 -> 无切换感
                 animator.stop()
                 holder.row.visibility = View.VISIBLE
-                holder.label.text = ThinkingSummary.line(msg.thinking)
-                holder.label.setTextColor(0xFF9A9A9A.toInt())
+                holder.count.visibility = View.GONE
+                holder.label.setText(ThinkingSummary.line(msg.thinking))
                 holder.arrow.visibility = View.VISIBLE
                 holder.row.isClickable = true
                 holder.row.setOnClickListener { onToggleClick() }
-                applyDrawer(msg, animateArrow = animate)
+                ThinkingDrawer.apply(msg, holder, animateArrow = animate)
             }
         }
         phase = target
     }
 
-    /** 折叠：箭头向右 ▶ 抽屉收起；展开：箭头向下 ▼ 抽屉出现（限高内部滚动）。 */
-    fun applyDrawer(msg: Message, animateArrow: Boolean) {
-        if (msg.thinkingCollapsed) {
-            holder.scroll.visibility = View.GONE
-            holder.scroll.alpha = 1f
-            if (animateArrow) holder.arrow.animate().rotation(90f).setDuration(200).start()
-            else holder.arrow.rotation = 90f
-        } else {
-            holder.scroll.visibility = View.VISIBLE
-            if (textLastLength != msg.thinking.length) {
-                holder.text.text = msg.thinking
-                textLastLength = msg.thinking.length
-            }
-            if (animateArrow) {
-                holder.scroll.alpha = 0f
-                holder.scroll.animate().alpha(1f).setDuration(140).start()
-                holder.arrow.animate().rotation(-90f).setDuration(200).start()
-            } else {
-                holder.scroll.alpha = 1f
-                holder.arrow.rotation = -90f
-            }
+    /** 流式片段：内容变了才切，句末立即、其余按节流窗口，避免逐字闪。 */
+    private fun refreshSnippet(msg: Message, force: Boolean = false) {
+        val now = System.nanoTime()
+        if (!force && !ThinkingSummary.shouldSwitch(msg.thinking, lastSnippet, lastSnippetNs, now)) {
+            return
         }
+        val text = ThinkingSummary.tail(msg.thinking)
+        if (text.isEmpty()) return
+        lastSnippet = text
+        lastSnippetNs = now
+        holder.label.setText(text)
+        holder.count.text = "${msg.thinking.length}字"
     }
 
-    fun hide() {
-        animator.stop()
-        animMsg = null
-        holder.row.visibility = View.GONE
-        holder.scroll.visibility = View.GONE
-        holder.row.setOnClickListener(null)
-        holder.row.isClickable = false
-        phase = PHASE_NONE
-    }
+    fun hide() = reset()
 
     private fun targetPhase(msg: Message): Int = when {
         msg.thinking.isNotEmpty() && msg.streaming -> PHASE_STREAMING
