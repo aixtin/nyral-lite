@@ -120,6 +120,8 @@ class MainActivity : AppCompatActivity() {
         if (!kernel.services.get<ApiConfigStore>().isConfigured()) {
             startActivity(Intent(this, ModelConfigActivity::class.java))
         }
+        // 启动时静默检查更新（6 小时节流，有新版本才弹一次框）
+        UpdateChecker.checkIfDue(this)
     }
 
     override fun onPause() {

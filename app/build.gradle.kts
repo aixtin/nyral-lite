@@ -1,8 +1,15 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     kotlin("kapt")
 }
+
+// 正式签名材料不入库（keystore.properties 已在 .gitignore）。
+// 缺失时回落到 debug 签名，保证仓库 clone 后仍可出包。
+val keystoreProps = rootProject.file("keystore.properties")
+val hasReleaseKey = keystoreProps.exists()
 
 // prism4j 通过 api 传递老版本 org.jetbrains:annotations-java5(17.0.0),
 // 与 kotlin 自带的 annotations 产生重复类 (运行时崩), 全局排除, 统一用新版。
@@ -22,12 +29,34 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                val p = Properties()
+                keystoreProps.inputStream().use { p.load(it) }
+                storeFile = file(p.getProperty("storeFile"))
+                storePassword = p.getProperty("storePassword")
+                keyAlias = p.getProperty("keyAlias")
+                keyPassword = p.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             isMinifyEnabled = false
         }
         release {
-            isMinifyEnabled = false
+            if (hasReleaseKey) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+            // 开 R8 压缩 + 混淆 + 资源裁剪，减小体积并提高逆向门槛
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 

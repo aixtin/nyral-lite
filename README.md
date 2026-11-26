@@ -37,6 +37,21 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 | `docs/plugin-dev.md` | 插件开发指南 |
 | `AGENTS.md` | 本项目的开发约定 |
 
+## 版本记录
+
+### v0.1.0 · 2026-11-27 · versionCode 1
+
+首个公开版本。
+
+- 流式聊天与可折叠思考过程
+- Markdown、代码块与表格渲染
+- 工具调用：内置系统工具 + 远程 MCP
+- 人设卡导入（SillyTavern v2 JSON / PNG）
+- 会话历史、摘要与长期记忆
+- 动态 Dex 插件扩展
+- 三档安全门禁与工具审计日志
+- 启动时静默检查 GitHub Release 更新
+
 ## 插件开发
 
 插件是一个装进 App 的动态 Dex APK，可以向模型注册工具、调用宿主能力。
@@ -44,4 +59,4 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## 许可证
 
-MIT，见 [LICENSE](LICENSE)。
+MIT，见 [LICENSE](LICENSE)。安全策略见 [SECURITY.md](SECURITY.md)，隐私说明见 [PRIVACY.md](PRIVACY.md)。
