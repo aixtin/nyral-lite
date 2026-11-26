@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity() {
         scrollButton = ScrollToBottomButton(
             rv = rv,
             button = findViewById<ImageView>(R.id.btn_scroll_bottom),
-            onScrollStateChanged = { scrolling -> wiring.controller.listScrolling = scrolling },
+            onScrollStateChanged = { state -> wiring.controller.listScrollState = state },
             onPinToBottom = wiring.controller::pinToBottom,
         )
     }

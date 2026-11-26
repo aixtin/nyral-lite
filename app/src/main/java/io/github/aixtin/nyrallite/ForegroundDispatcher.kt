@@ -2,7 +2,6 @@ package io.github.aixtin.nyrallite
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import io.github.aixtin.nyrallite.contract.ForegroundContract
 
 /**
@@ -69,11 +68,7 @@ class ForegroundDispatcher(
     private fun tryStartService(title: String, body: String, taskId: String): Boolean {
         val intent = NyralForegroundService.startIntent(appContext, taskId, title, body)
         return runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                appContext.startForegroundService(intent)
-            } else {
-                appContext.startService(intent)
-            }
+            appContext.startForegroundService(intent)
             true
         }.getOrElse {
             // 启动失败（比如 Android 12+ 限制）时把 pending 里的 task 清掉

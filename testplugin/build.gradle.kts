@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "io.github.aixtin.nyrallite.testplugin"
-        minSdk = 29
+        minSdk = 31
         targetSdk = 36
         versionCode = 1
         versionName = "0.0.1"

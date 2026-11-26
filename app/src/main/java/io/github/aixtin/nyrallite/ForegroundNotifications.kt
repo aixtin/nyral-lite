@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.app.NotificationCompat
 
 /** 前台常驻通知：渠道创建、构建与更新。 */
@@ -28,7 +27,6 @@ internal class ForegroundNotifications(private val context: Context) {
 
     private fun ensureChannel() {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Nyral Lite 长任务",

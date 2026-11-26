@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 class ScrollToBottomButton(
     private val rv: RecyclerView,
     private val button: ImageView,
-    private val onScrollStateChanged: (Boolean) -> Unit,
+    private val onScrollStateChanged: (Int) -> Unit,
     private val onPinToBottom: () -> Unit,
 ) {
     private val handler = Handler(Looper.getMainLooper())
@@ -42,8 +42,8 @@ class ScrollToBottomButton(
         }
 
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-            // 手势/惯性滚动中冻结流式渲染，松手恢复
-            onScrollStateChanged(newState != RecyclerView.SCROLL_STATE_IDLE)
+            // 手势/惯性滚动中冻结流式渲染；把原始状态传出去，由控制器区分拖动与自动滑动
+            onScrollStateChanged(newState)
             if (newState == RecyclerView.SCROLL_STATE_IDLE && button.visibility == View.VISIBLE) {
                 handler.removeCallbacks(hideRunnable)
                 handler.postDelayed(hideRunnable, 1200)

@@ -64,17 +64,15 @@ class ChatController(
     var onToolsWarning: ((String?) -> Unit)? = null
 
     /** 用户手指/惯性滚动进行中：暂停流式渲染。 */
-    var listScrolling: Boolean
-        get() = typewriter.paused
+    /** 列表滚动状态：滚动中暂停流式渲染；静止时再按"是否在底部"决定跟随。 */
+    var listScrollState: Int = RecyclerView.SCROLL_STATE_IDLE
         set(value) {
-            val wasScrolling = typewriter.paused
-            typewriter.paused = value
-            if (value) {
-                // 用户接管滚动：本轮不再自动跟随，避免抢用户的阅读位置
-                typewriter.followAnswer = false
-            } else if (wasScrolling && ScrollPinner.nearBottom(rv)) {
-                // 松手时已滑回底部：恢复跟随
-                typewriter.followAnswer = true
+            field = value
+            typewriter.paused = value != RecyclerView.SCROLL_STATE_IDLE
+            // 部分机型（Android 10）键盘/布局变化会派发 DRAGGING/SETTLING，
+            // 一收到就关跟随会误伤；改为停稳后再判断：在底部就继续跟，不在就停
+            if (value == RecyclerView.SCROLL_STATE_IDLE) {
+                typewriter.followAnswer = ScrollPinner.nearBottom(rv, toleranceDp = 48)
             }
         }
 

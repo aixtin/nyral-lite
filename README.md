@@ -14,7 +14,7 @@
 
 ## 环境要求
 
-- Android 10 及以上（minSdk 29）
+- Android 12 及以上（minSdk 31）
 - JDK 17
 - Android SDK 36
 

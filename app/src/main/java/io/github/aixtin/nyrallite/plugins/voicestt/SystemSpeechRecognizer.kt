@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -90,12 +89,8 @@ class SystemSpeechRecognizer(
     }
 
     private object LocaleCompat {
-        fun tag(): String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            java.util.Locale.getDefault().toLanguageTag()
-        } else {
-            val l = java.util.Locale.getDefault()
-            "${l.language}_${l.country}"
-        }
+        /** minSdk 31 起直接使用 BCP 47 标签。 */
+        fun tag(): String = java.util.Locale.getDefault().toLanguageTag()
     }
 
     private inner class RecognitionBridge : RecognitionListener {

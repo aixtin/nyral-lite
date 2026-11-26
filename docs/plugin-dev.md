@@ -1,7 +1,7 @@
 # Nyral Lite 插件开发指南
 
 > 仓库地址：https://github.com/aixtin/nyral-lite
-> 适用版本：Nyral Lite `0.1.x`（Android，minSdk 29 / targetSdk 36，Kotlin JVM 17）
+> 适用版本：Nyral Lite `0.1.x`（Android，minSdk 31 / targetSdk 36，Kotlin JVM 17）
 > 文档目的：让第三方开发者写一个 **Dex APK 插件**，装进 App 后能向模型提供工具（tool calling）。
 > 仓库内参考实现：`testplugin/`（最小 HelloPlugin）、`app/src/main/java/.../plugins/`（内置插件）。
 
@@ -82,7 +82,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.nowplugin"
-        minSdk = 29
+        minSdk = 31
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
@@ -506,7 +506,7 @@ adb shell dumpsys package io.github.aixtin.nyrallite | head -5
    ```
 3. **避免打进宿主已有的依赖**：`kotlin-stdlib`、`androidx.*` 宿主已有，重复打包可能引发类版本冲突（父加载器优先，行为以宿主版本为准）。
 4. **包名随意，插件 id 唯一**；APK 的 `applicationId` 不参与插件身份判定。
-5. **targetSdk 与宿主一致（36）、minSdk ≥ 29**；Android 13+ 要求 APK 文件只读（宿主已处理）。
+5. **targetSdk 与宿主一致（36）、minSdk ≥ 31**；Android 13+ 要求 APK 文件只读（宿主已处理）。
 6. **APK 必须 > 1KB**。
 7. 插件内不要长期持有 `Activity` 引用；需要 UI 用 `appContext` 或申请前台任务。
 

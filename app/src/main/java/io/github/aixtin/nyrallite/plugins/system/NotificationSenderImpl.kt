@@ -3,7 +3,6 @@ package io.github.aixtin.nyrallite.plugins.system
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.github.aixtin.nyrallite.contract.NotificationContract
@@ -49,15 +48,13 @@ class NotificationSenderImpl(
     }
 
     private fun ensureChannel(channelId: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Nyral Lite 系统通知",
-                NotificationManager.IMPORTANCE_DEFAULT,
-            ).apply {
-                description = "Nyral Lite AI 主动触发的通知"
-            }
-            runCatching { nm.createNotificationChannel(channel) }
+        val channel = NotificationChannel(
+            channelId,
+            "Nyral Lite 系统通知",
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            description = "Nyral Lite AI 主动触发的通知"
         }
+        runCatching { nm.createNotificationChannel(channel) }
     }
 }
