@@ -2,7 +2,6 @@ package io.github.aixtin.nyrallite
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 
 /**
@@ -84,7 +83,6 @@ class Typewriter(
                 if (followAnswer) {
                     ScrollPinner.pinUntilTop(rv, pos) { followAnswer = false }
                 }
-                Log.d("TW", "tick b=$backlog off=${rv.computeVerticalScrollOffset()} range=${rv.computeVerticalScrollRange()} ext=${rv.computeVerticalScrollExtent()} follow=$followAnswer")
             }
             if (finished && displayedLen >= target) {
                 scheduled = false

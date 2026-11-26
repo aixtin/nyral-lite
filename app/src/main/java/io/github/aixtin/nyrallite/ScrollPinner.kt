@@ -1,6 +1,5 @@
 package io.github.aixtin.nyrallite
 
-import android.util.Log
 import android.view.ViewTreeObserver
 import androidx.recyclerview.widget.RecyclerView
 
@@ -59,10 +58,7 @@ internal object ScrollPinner {
                     val allowed = (item?.top ?: Int.MAX_VALUE) - rv.paddingTop
                     when {
                         // 顶部已到（或越过）列表顶部：本就该停
-                        allowed <= 0 -> {
-                            Log.d("TW", "capped top=${item?.top} h=${item?.height} rem=$remaining")
-                            onCapped()
-                        }
+                        allowed <= 0 -> onCapped()
                         allowed < remaining -> {
                             rv.scrollBy(0, allowed)
                             onCapped()

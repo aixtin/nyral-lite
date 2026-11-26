@@ -78,7 +78,6 @@ class ChatController(
                     // 只有用户主动拖过才重新判定，避免布局/键盘引起的空 IDLE 误关跟随
                     sawDrag = false
                     typewriter.followAnswer = ScrollPinner.nearBottom(rv, toleranceDp = 48)
-                    android.util.Log.d("TW", "idle-after-drag follow=${typewriter.followAnswer}")
                 }
             }
         }
