@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 
 /**
@@ -45,7 +45,7 @@ internal class PersonaSwitcher(
             apply(id, newSession = false)
             return
         }
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.persona_title)
             .setMessage(R.string.persona_switch_message)
             .setPositiveButton(R.string.persona_new_session) { _, _ ->

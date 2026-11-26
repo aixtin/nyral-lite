@@ -1,7 +1,7 @@
 package io.github.aixtin.nyrallite
 
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import io.github.aixtin.nyrallite.plugins.dex.ExternalPluginRecord
 import io.github.aixtin.nyrallite.plugins.dex.StagedApk
@@ -71,7 +71,7 @@ internal class PluginApkImporter(
 
     /** 未知签名：展示包信息与指纹，用户确认后才信任并加载。 */
     private fun confirmThirdPartySigner(staged: StagedApk) {
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle("未知签名的插件")
             .setMessage(
                 buildString {

@@ -5,5 +5,24 @@
         <item name="android:windowBackground">@color/bg</item>
         <item name="android:statusBarColor">@color/bg</item>
         <item name="android:windowLightStatusBar">true</item>
+        <!-- 全部弹窗走统一的 M3 风格：圆角、浅底、品牌色按钮 -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.NyralLite.Dialog</item>
+    </style>
+
+    <style name="ThemeOverlay.NyralLite.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/brand</item>
+        <item name="colorSecondary">@color/brand</item>
+        <item name="colorSurface">@color/bg</item>
+        <item name="colorSurfaceContainerHigh">@color/bg</item>
+        <item name="colorOnSurface">@color/ai_text</item>
+        <!-- 关掉 M3 的高度叠加，否则浅色底会被染成淡紫 -->
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.NyralLite.Dialog</item>
+    </style>
+
+    <!-- 弹窗圆角与卡片(bg_card 16dp)接近，去掉 M3 默认的 28dp 大圆角 -->
+    <style name="ShapeAppearance.NyralLite.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
     </style>
 </resources>

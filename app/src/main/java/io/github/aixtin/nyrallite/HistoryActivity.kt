@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -72,14 +71,14 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private fun confirmDelete(session: SessionSummary) {
-        AlertDialog.Builder(this)
-            .setMessage(R.string.history_delete_confirm)
-            .setNegativeButton(R.string.history_cancel, null)
-            .setPositiveButton(R.string.history_delete) { _, _ ->
-                store.delete(session.id)
-                render()
-            }
-            .show()
+        AppDialogs.confirmDelete(
+            this,
+            getString(R.string.history_delete_confirm),
+            R.string.history_delete,
+        ) {
+            store.delete(session.id)
+            render()
+        }
     }
 
     companion object {

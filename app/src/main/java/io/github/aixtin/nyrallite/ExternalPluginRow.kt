@@ -2,7 +2,6 @@ package io.github.aixtin.nyrallite
 
 import android.graphics.Typeface
 import android.view.Gravity
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -65,35 +64,33 @@ internal class ExternalPluginRow(
                 },
             )
             if (onConfigure != null) {
-                addView(
-                    Button(activity).apply {
-                        text = "设置"
-                        textSize = 12f
-                        minWidth = 0
-                        minimumWidth = 0
-                        setOnClickListener { onConfigure() }
-                    },
-                )
+                addView(chip("设置", R.color.brand) { onConfigure() })
             }
-            addView(
-                Button(activity).apply {
-                    text = "移除"
-                    textSize = 12f
-                    minWidth = 0
-                    minimumWidth = 0
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                    )
-                    setOnClickListener { onRemove(record) }
-                },
-            )
+            addView(chip("移除", R.color.tool_fail) { onRemove(record) })
             addView(
                 SwitchCompat(activity).apply {
                     isChecked = record.enabled
                     setOnCheckedChangeListener { _, checked -> onToggle(record, checked, this) }
                 },
             )
+        }
+
+    /** 轻量胶囊按钮：透明底 + 淡描边，与底部工具条同一套视觉。 */
+    private fun chip(text: String, colorRes: Int, onClick: () -> Unit): TextView =
+        TextView(activity).apply {
+            this.text = text
+            textSize = 12f
+            gravity = Gravity.CENTER
+            setTextColor(ContextCompat.getColor(activity, colorRes))
+            background = ContextCompat.getDrawable(activity, R.drawable.bg_bar_item)
+            setPadding(dp(12), dp(6), dp(12), dp(6))
+            isClickable = true
+            isFocusable = true
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { marginStart = dp(6) }
+            setOnClickListener { onClick() }
         }
 
     private fun status(record: ExternalPluginRecord, installed: Boolean): TextView {

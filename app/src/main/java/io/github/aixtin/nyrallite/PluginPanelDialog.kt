@@ -1,8 +1,8 @@
 package io.github.aixtin.nyrallite
 
 import android.widget.ScrollView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aixtin.nyrallite.kernel.PanelSpec
 import io.github.aixtin.nyrallite.kernel.PluginConfig
 
@@ -18,7 +18,7 @@ internal object PluginPanelDialog {
     ) {
         val form = PluginPanelView(activity, spec, config)
         val scroll = ScrollView(activity).apply { addView(form.root) }
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(spec.title.ifBlank { "$pluginId 配置" })
             .setView(scroll)
             .setPositiveButton("保存") { _, _ ->

@@ -3,14 +3,13 @@ package io.github.aixtin.nyrallite
 import android.text.InputType
 import android.text.method.PasswordTransformationMethod
 import android.widget.ArrayAdapter
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.materialswitch.MaterialSwitch
 import io.github.aixtin.nyrallite.kernel.PanelField
 import io.github.aixtin.nyrallite.kernel.PanelSpec
 import io.github.aixtin.nyrallite.kernel.PluginConfig
@@ -58,7 +57,7 @@ internal class PluginPanelView(
                 box.addView(showToggle(edit))
             }
             is PanelField.Switch -> {
-                val sw = SwitchCompat(activity).apply {
+                val sw = MaterialSwitch(activity).apply {
                     text = field.label
                     textSize = 14f
                     isChecked = readValue(field.key, field.default.toString()).toBoolean()
@@ -81,14 +80,18 @@ internal class PluginPanelView(
             textSize = 14f
             hint = placeholder
             setText(readValue(key, default))
+            // 统一圆角输入框，去掉系统默认下划线样式
+            background = ContextCompat.getDrawable(activity, R.drawable.bg_field)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
             inputType = InputType.TYPE_CLASS_TEXT or
                 (if (secret) InputType.TYPE_TEXT_VARIATION_PASSWORD else InputType.TYPE_TEXT_VARIATION_NORMAL)
             if (secret) transformationMethod = PasswordTransformationMethod.getInstance()
             readers.add(key to { text?.toString() ?: "" })
         }
 
-    private fun showToggle(edit: EditText): CheckBox =
-        CheckBox(activity).apply {
+    /** 与宿主其它开关保持一致，避免面板里混入原生样式。 */
+    private fun showToggle(edit: EditText): MaterialSwitch =
+        MaterialSwitch(activity).apply {
             text = "显示明文"
             textSize = 12f
             setOnCheckedChangeListener { _, checked ->
@@ -99,6 +102,8 @@ internal class PluginPanelView(
 
     private fun select(field: PanelField.Select): Spinner =
         Spinner(activity).apply {
+            background = ContextCompat.getDrawable(activity, R.drawable.bg_field)
+            setPadding(dp(12), dp(8), dp(12), dp(8))
             adapter = ArrayAdapter(
                 activity,
                 android.R.layout.simple_spinner_item,

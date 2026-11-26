@@ -7,7 +7,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -123,15 +122,15 @@ class PersonaActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.persona_delete_current, Toast.LENGTH_SHORT).show()
             return
         }
-        AlertDialog.Builder(this)
-            .setMessage(getString(R.string.persona_delete_confirm, card.name))
-            .setNegativeButton(R.string.history_cancel, null)
-            .setPositiveButton(R.string.persona_delete) { _, _ ->
-                store.delete(card.id)
-                PersonaAvatar.delete(this, card.id)
-                reload()
-            }
-            .show()
+        AppDialogs.confirmDelete(
+            this,
+            getString(R.string.persona_delete_confirm, card.name),
+            R.string.persona_delete,
+        ) {
+            store.delete(card.id)
+            PersonaAvatar.delete(this, card.id)
+            reload()
+        }
     }
 
     companion object {

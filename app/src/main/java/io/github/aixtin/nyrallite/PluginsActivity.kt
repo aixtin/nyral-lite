@@ -53,7 +53,7 @@ class PluginsActivity : AppCompatActivity() {
             externalPanel.refresh()
         }
         findViewById<Button>(R.id.btn_import_apk).setOnClickListener { importer.launch() }
-        findViewById<Button>(R.id.btn_unload_all).setOnClickListener { unloadAll(app) }
+        findViewById<TextView>(R.id.btn_unload_all).setOnClickListener { unloadAll(app) }
         externalPanel.refresh()
 
         buildPluginCards()

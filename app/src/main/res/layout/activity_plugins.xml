@@ -103,17 +103,17 @@
                     android:textSize="13sp"
                     android:backgroundTint="@color/brand" />
 
-                <Button
+                <TextView
                     android:id="@+id/btn_unload_all"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:layout_marginStart="10dp"
-                    android:minWidth="0dp"
+                    android:background="@drawable/bg_bar_item"
+                    android:gravity="center"
                     android:paddingHorizontal="18dp"
                     android:text="全部移除"
-                    android:textColor="@color/ai_text"
-                    android:textSize="13sp"
-                    android:backgroundTint="@color/divider" />
+                    android:textColor="@color/tool_fail"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <TextView

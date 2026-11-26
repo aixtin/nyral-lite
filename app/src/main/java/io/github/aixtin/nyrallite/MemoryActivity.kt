@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -63,13 +62,13 @@ class MemoryActivity : AppCompatActivity() {
     }
 
     private fun confirmDelete(entry: MemoryEntry) {
-        AlertDialog.Builder(this)
-            .setMessage(getString(R.string.memory_delete_confirm, entry.title))
-            .setNegativeButton(R.string.history_cancel, null)
-            .setPositiveButton(R.string.memory_delete) { _, _ ->
-                store.delete(entry.id)
-                reload()
-            }
-            .show()
+        AppDialogs.confirmDelete(
+            this,
+            getString(R.string.memory_delete_confirm, entry.title),
+            R.string.memory_delete,
+        ) {
+            store.delete(entry.id)
+            reload()
+        }
     }
 }

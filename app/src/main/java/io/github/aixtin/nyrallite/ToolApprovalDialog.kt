@@ -1,7 +1,7 @@
 package io.github.aixtin.nyrallite
 
 import android.app.Activity
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aixtin.nyrallite.contract.ApprovalDecision
 import io.github.aixtin.nyrallite.contract.ToolApproval
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +46,7 @@ class ToolApprovalDialog : ToolApproval {
                 if (cont.isActive) cont.resume(decision)
             }
 
-            val dialog = AlertDialog.Builder(activity)
+            val dialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(activity.getString(R.string.approval_title, tool))
                 .setMessage(activity.getString(R.string.approval_message, pluginId, arguments.take(300)))
                 .setPositiveButton(R.string.approval_allow_once) { _, _ -> settle(ApprovalDecision.ALLOW_ONCE) }
