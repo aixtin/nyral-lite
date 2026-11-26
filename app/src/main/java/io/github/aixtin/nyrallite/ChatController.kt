@@ -67,7 +67,12 @@ class ChatController(
     var listScrolling: Boolean
         get() = typewriter.paused
         set(value) {
+            val wasScrolling = typewriter.paused
             typewriter.paused = value
+            // 松手时若用户已滑回底部，恢复跟随，新内容继续贴底
+            if (wasScrolling && !value && ScrollPinner.nearBottom(rv)) {
+                typewriter.followAnswer = true
+            }
         }
 
     fun onSendButtonClick() {

@@ -18,7 +18,9 @@ internal class RoundFlow(
         state.streamingPos = pos
         typewriter.begin(pos)
         state.adapter.notifyItemInserted(pos)
-        state.rv.scrollToPosition(pos)
+        // 新一轮从底部开始：空消息没有高度，用 scrollToPosition 会停在半空，
+        // 直接贴底才能让正文增长时按"上移封顶"的节奏跟随
+        state.rv.post { ScrollPinner.pinStable(state.rv) }
     }
 
     /**

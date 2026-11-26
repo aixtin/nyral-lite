@@ -64,7 +64,7 @@ class Typewriter(
             }
             if (thinkingDirty) {
                 // 思考行首次出现会撑高条目, 贴底状态要在变化前取
-                val wasPinned = !rv.canScrollVertically(1)
+                val wasPinned = ScrollPinner.nearBottom(rv)
                 adapter.updateThinking(pos, thinking.toString())
                 shownThinkingLen = thinking.length
                 if (wasPinned && followAnswer) ScrollPinner.pinOnDraw(rv)
@@ -77,7 +77,7 @@ class Typewriter(
                 }
                 displayedLen = minOf(target, displayedLen + step)
                 // 贴底判定要在内容变化前做; 滚动不用 scrollToPosition
-                val wasPinned = !rv.canScrollVertically(1)
+                val wasPinned = ScrollPinner.nearBottom(rv)
                 tailIsTable = adapter.updateAi(
                     pos,
                     text.substring(0, displayedLen),

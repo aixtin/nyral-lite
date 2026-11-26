@@ -6,6 +6,17 @@ import androidx.recyclerview.widget.RecyclerView
 /** 列表贴底：瞬时补齐与"本帧布局完成后、绘制前"贴底。 */
 internal object ScrollPinner {
 
+    /**
+     * 距底部不超过 [toleranceDp] 即视为贴底。
+     * 留容差是因为 canScrollVertically 差 1px 就判 false，内边距/内容微抖都会让跟随失效。
+     */
+    fun nearBottom(rv: RecyclerView, toleranceDp: Int = 16): Boolean {
+        val tolerance = (toleranceDp * rv.resources.displayMetrics.density).toInt()
+        val remaining = rv.computeVerticalScrollRange() -
+            rv.computeVerticalScrollExtent() - rv.computeVerticalScrollOffset()
+        return remaining <= tolerance
+    }
+
     /** 瞬时贴底：按当前剩余可滚距离补齐，对超高条目也钉在内容末尾。 */
     fun pin(rv: RecyclerView) {
         rv.scrollBy(
