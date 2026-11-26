@@ -112,6 +112,18 @@ class ChatAdapter(
         return holder.segments.lastOrNull()?.let(renderer::isHeavySegment) ?: false
     }
 
+    /**
+     * 只有思考增量、正文还没开始时使用：直接把思考写入消息并刷新思考行，
+     * 不重解析正文（此时正文为空，解析纯属浪费）。
+     */
+    fun updateThinking(position: Int, thinking: String) {
+        if (position < 0 || position >= items.size) return
+        val msg = items[position]
+        msg.thinking = thinking
+        val holder = rv?.findViewHolderForAdapterPosition(position) as? AiMessageHolder
+        holder?.thinking?.updateThinking(msg)
+    }
+
     /** 工具卡片点击：切换参数/结果展开。 */
     private fun toggleToolCard(h: ToolCallHolder) {
         val pos = h.bindingAdapterPosition

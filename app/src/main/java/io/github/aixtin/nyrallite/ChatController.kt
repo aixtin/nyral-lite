@@ -79,7 +79,7 @@ class ChatController(
     }
 
     fun pinToBottom() {
-        typewriter.pinToBottom()
+        ScrollPinner.pin(rv)
     }
 
     /**
@@ -99,7 +99,7 @@ class ChatController(
         state.busy = false
         state.btnSend.setText(R.string.send)
         state.adapter.notifyDataSetChanged()
-        if (state.messages.isNotEmpty()) state.rv.post { typewriter.pinToBottomStable() }
+        if (state.messages.isNotEmpty()) state.rv.post { ScrollPinner.pinStable(state.rv) }
     }
 
     /** 人设开场白：只在空会话里插入，作为第一条 AI 消息；有内容时不动。 */
@@ -108,7 +108,7 @@ class ChatController(
         state.messages.add(Message("ai", text))
         state.history.add(ChatTurn("assistant", text))
         state.adapter.notifyItemInserted(0)
-        state.rv.post { typewriter.pinToBottomStable() }
+        state.rv.post { ScrollPinner.pinStable(state.rv) }
         onChanged()
     }
 

@@ -23,6 +23,8 @@ class Typewriter(
 
     private var pos = -1
     private var displayedLen = 0
+    /** 已上屏的思考长度，用于判断思考是否有增量。 */
+    private var shownThinkingLen = 0
     private var scheduled = false
     private var finished = false
 
@@ -44,9 +46,10 @@ class Typewriter(
                 return
             }
             val target = text.length
-            val heavy = target > 6000
             val backlog = target - displayedLen
-            if (backlog <= 0 && !finished) {
+            // 思考可能先于正文到达：只有思考在涨时也要刷新界面，否则思考期间只有"处理中"
+            val thinkingDirty = thinking.length != shownThinkingLen
+            if (backlog <= 0 && !finished && !thinkingDirty) {
                 // 已追平缓冲区, 停摆等下一块网络数据 (append 会重新调度)
                 scheduled = false
                 return
@@ -61,10 +64,17 @@ class Typewriter(
                 reschedule()
                 return
             }
+            if (thinkingDirty) {
+                // 思考行首次出现会撑高条目, 贴底状态要在变化前取
+                val wasPinned = !rv.canScrollVertically(1)
+                adapter.updateThinking(pos, thinking.toString())
+                shownThinkingLen = thinking.length
+                if (wasPinned) ScrollPinner.pinOnDraw(rv)
+            }
             if (backlog > 0) {
                 val step = when {
-                    backlog > 160 -> if (heavy) 16 else 10
-                    backlog > 48 -> if (heavy) 8 else 4
+                    backlog > 160 -> if (target > 6000) 16 else 10
+                    backlog > 48 -> if (target > 6000) 8 else 4
                     else -> 1
                 }
                 displayedLen = minOf(target, displayedLen + step)
@@ -75,7 +85,7 @@ class Typewriter(
                     text.substring(0, displayedLen),
                     thinking.toString(),
                 )
-                if (wasPinned) pinToBottomOnDraw()
+                if (wasPinned) ScrollPinner.pinOnDraw(rv)
             }
             if (finished && displayedLen >= target) {
                 scheduled = false
@@ -93,6 +103,7 @@ class Typewriter(
         text.setLength(0)
         thinking.setLength(0)
         displayedLen = 0
+        shownThinkingLen = 0
         scheduled = false
         finished = false
         tailIsTable = false
@@ -121,15 +132,6 @@ class Typewriter(
         scheduled = false
         pos = -1
     }
-
-    /** 瞬时贴底；实现见 [ScrollPinner]。 */
-    fun pinToBottom() = ScrollPinner.pin(rv)
-
-    /** 会话加载后收敛贴底：超高条目一次补不到末尾会继续补；实现见 [ScrollPinner]。 */
-    fun pinToBottomStable() = ScrollPinner.pinStable(rv)
-
-    /** 本帧布局完成后贴底；实现见 [ScrollPinner]。 */
-    fun pinToBottomOnDraw() = ScrollPinner.pinOnDraw(rv)
 
     private fun ensure() {
         if (!scheduled) {

@@ -55,7 +55,7 @@ internal class RoundFlow(
             msg.streaming = false
             state.adapter.notifyItemChanged(state.streamingPos)
             // 错误卡片比空占位高，布局后贴底，确保"点击重试"不被底栏遮住
-            typewriter.pinToBottomOnDraw()
+            ScrollPinner.pinOnDraw(state.rv)
         }
         state.streamingPos = -1
         state.busy = false
@@ -78,7 +78,7 @@ internal class RoundFlow(
             }
             state.adapter.updateAi(state.streamingPos, finalText, msg.thinking) {
                 // 取消时「（已停止）」刚追加到文末，等这段内容上屏后再贴底
-                if (cancelled) typewriter.pinToBottomOnDraw()
+                if (cancelled) ScrollPinner.pinOnDraw(state.rv)
             }
         }
         state.streamingPos = -1
