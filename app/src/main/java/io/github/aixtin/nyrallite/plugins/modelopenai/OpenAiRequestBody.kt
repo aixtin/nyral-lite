@@ -39,7 +39,7 @@ internal object OpenAiRequestBody {
         openAttachment: (AttachmentRef) -> ByteArray?,
     ): JSONObject {
         val message = JSONObject().put("role", turn.role)
-        if (turn.role == "tool") {
+        if (turn.role == ChatTurn.ROLE_TOOL) {
             return message.put("content", turn.content).put("tool_call_id", turn.toolCallId)
         }
         if (turn.toolCalls.isNotEmpty()) {

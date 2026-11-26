@@ -53,8 +53,8 @@ class ChatAdapter(
     }
 
     override fun getItemViewType(position: Int): Int = when (items[position].role) {
-        "user" -> TYPE_USER
-        "tool" -> TYPE_TOOL
+        Message.ROLE_USER -> TYPE_USER
+        Message.ROLE_TOOL -> TYPE_TOOL
         else -> TYPE_AI
     }
 
@@ -103,7 +103,7 @@ class ChatAdapter(
             val stillValid = pos != RecyclerView.NO_POSITION &&
                 pos in items.indices &&
                 items[pos] === msg &&
-                msg.role == "ai"
+                msg.role == Message.ROLE_AI
             if (!stillValid) return@request false
             segmentRenderer.applySegments(holder, msg, text, segments)
             onApplied?.invoke()

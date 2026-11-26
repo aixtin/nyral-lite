@@ -55,10 +55,10 @@ class SessionSummarizer(
 
     private suspend fun summarize(previous: String, fresh: List<Message>): String {
         val transcript = fresh
-            .filter { (it.role == "user" || it.role == "ai") && it.content.isNotBlank() }
+            .filter { (it.role == Message.ROLE_USER || it.role == Message.ROLE_AI) && it.content.isNotBlank() }
             .takeLast(MAX_INPUT_MESSAGES)
             .joinToString("\n") { msg ->
-                val who = if (msg.role == "user") "用户" else "助手"
+                val who = if (msg.role == Message.ROLE_USER) "用户" else "助手"
                 "$who: ${msg.content.take(MAX_CHARS_PER_MESSAGE)}"
             }
         if (transcript.isBlank()) return ""
@@ -74,7 +74,7 @@ class SessionSummarizer(
             val job = transport.stream(
                 ChatRequest(
                     systemPrompt = system,
-                    turns = listOf(ChatTurn("user", "新增对话：\n$transcript")),
+                    turns = listOf(ChatTurn(ChatTurn.ROLE_USER, "新增对话：\n$transcript")),
                 ),
             ) { event ->
                 when (event) {

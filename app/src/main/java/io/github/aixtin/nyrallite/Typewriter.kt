@@ -68,11 +68,7 @@ class Typewriter(
                 if (followAnswer) ScrollPinner.pinOnDraw(rv)
             }
             if (backlog > 0) {
-                val step = when {
-                    backlog > 160 -> if (target > 6000) 16 else 10
-                    backlog > 48 -> if (target > 6000) 8 else 4
-                    else -> 1
-                }
+                val step = stepFor(backlog, target)
                 displayedLen = minOf(target, displayedLen + step)
                 // 跟随只由开关决定，不再逐帧判贴底：一次抖动判错会让整轮都跟不上
                 tailIsTable = adapter.updateAi(
@@ -140,7 +136,36 @@ class Typewriter(
 
     /** 表格或长文 measure 重, 降到稳定 30fps; 纯文本跟满 vsync 60fps。 */
     private fun reschedule() {
-        if (text.length > 6000 || tailIsTable) handler.postDelayed(tick, 33L)
+        if (text.length > LONG_TEXT_CHARS || tailIsTable) handler.postDelayed(tick, TICK_SLOW_MS)
         else rv.postOnAnimation(tick)
+    }
+
+    /**
+     * 根据积压量和全文长度决定步进。
+     * 积压越多、全文越长（measure 越重），步进越大；最小 1 保证每帧都有上屏。
+     */
+    private fun stepFor(backlog: Int, target: Int): Int = when {
+        backlog > BACKLOG_HIGH -> if (target > LONG_TEXT_CHARS) STEP_HIGH_HEAVY else STEP_HIGH_LIGHT
+        backlog > BACKLOG_MED -> if (target > LONG_TEXT_CHARS) STEP_MED_HEAVY else STEP_MED_LIGHT
+        else -> 1
+    }
+
+    private companion object {
+        /** 全文超过这个字符数视为"长文"，measure 重，用较大步进。 */
+        const val LONG_TEXT_CHARS = 6_000
+        /** 积压超过这个值视为"大积压"。 */
+        const val BACKLOG_HIGH = 160
+        /** 积压超过这个值视为"中积压"。 */
+        const val BACKLOG_MED = 48
+        /** 大积压 + 长文：步进 16。 */
+        const val STEP_HIGH_HEAVY = 16
+        /** 大积压 + 短文：步进 10。 */
+        const val STEP_HIGH_LIGHT = 10
+        /** 中积压 + 长文：步进 8。 */
+        const val STEP_MED_HEAVY = 8
+        /** 中积压 + 短文：步进 4。 */
+        const val STEP_MED_LIGHT = 4
+        /** 长文/表格降频：约 30fps（毫秒）。 */
+        const val TICK_SLOW_MS = 33L
     }
 }

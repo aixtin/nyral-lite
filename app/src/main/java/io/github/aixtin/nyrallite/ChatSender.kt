@@ -20,14 +20,14 @@ internal class ChatSender(
         val attachments = takeAttachments()
         if (text.isEmpty() && attachments.isEmpty()) return
         // 用户不点重试、改为重新发送时，移除上一条临时错误卡片
-        if (state.messages.lastOrNull()?.role == "error") {
+        if (state.messages.lastOrNull()?.role == Message.ROLE_ERROR) {
             state.messages.removeAt(state.messages.lastIndex)
             state.adapter.notifyItemRemoved(state.messages.size)
         }
         state.input.setText("")
 
-        state.messages.add(Message("user", text, attachments = attachments))
-        state.history.add(ChatTurn("user", text, attachments = attachments))
+        state.messages.add(Message(Message.ROLE_USER, text, attachments = attachments))
+        state.history.add(ChatTurn(ChatTurn.ROLE_USER, text, attachments = attachments))
         state.adapter.notifyItemInserted(state.messages.lastIndex)
 
         start()
@@ -43,7 +43,7 @@ internal class ChatSender(
     /** 重试当前失败请求：复用已有历史，不重复追加用户消息。 */
     fun retry(position: Int) {
         if (state.busy || position != state.messages.lastIndex ||
-            state.messages.getOrNull(position)?.role != "error"
+            state.messages.getOrNull(position)?.role != Message.ROLE_ERROR
         ) {
             return
         }

@@ -15,12 +15,12 @@ internal class AiSegmentRenderer(
         h.segments.clear()
         h.container.removeAllViews()
         h.thinking.reset()
-        if (msg.role == "error" && isLast) {
+        if (msg.role == Message.ROLE_ERROR && isLast) {
             h.itemView.setOnClickListener { onRetry(h.bindingAdapterPosition) }
         } else {
             h.itemView.setOnClickListener(null)
         }
-        if (msg.role == "error") {
+        if (msg.role == Message.ROLE_ERROR) {
             val tv = TextView(h.container.context).apply {
                 setTextColor(0xFFD32F2F.toInt())
                 textSize = 15f

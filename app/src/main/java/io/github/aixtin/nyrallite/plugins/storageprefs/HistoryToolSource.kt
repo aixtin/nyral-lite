@@ -1,5 +1,6 @@
 package io.github.aixtin.nyrallite.plugins.storageprefs
 
+import io.github.aixtin.nyrallite.Message
 import io.github.aixtin.nyrallite.contract.SessionStore
 import io.github.aixtin.nyrallite.contract.ToolResult
 import io.github.aixtin.nyrallite.contract.ToolSource
@@ -49,7 +50,7 @@ class HistoryToolSource(
         return buildString {
             append("命中 ").append(hits.size).append(" 条（会话共 ").append(total).append(" 条，序号为会话内位置）：\n")
             hits.forEach { hit ->
-                val who = if (hit.role == "user") "用户" else "助手"
+                val who = if (hit.role == Message.ROLE_USER) "用户" else "助手"
                 append("第 ").append(hit.index).append(" 条 [").append(who).append("] ")
                 append(hit.content.take(MAX_CHARS))
                 if (hit.content.length > MAX_CHARS) append("…（已截断）")

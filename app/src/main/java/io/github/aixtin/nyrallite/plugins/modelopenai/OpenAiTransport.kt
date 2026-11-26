@@ -35,9 +35,9 @@ class OpenAiTransport(
             val config = configStore.load()
             conn = (URL(config.baseUrl + "/chat/completions").openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
-                connectTimeout = 20_000
+                connectTimeout = CONNECT_TIMEOUT_MS
                 // 推理模型(尤其 NVIDIA 托管)可能长时间不吐第一个 token, 60s 会误判超时
-                readTimeout = 180_000
+                readTimeout = READ_TIMEOUT_MS
                 setRequestProperty("Content-Type", "application/json")
                 setRequestProperty("Accept", "text/event-stream")
                 setRequestProperty("Authorization", "Bearer ${config.apiKey}")
@@ -75,5 +75,13 @@ class OpenAiTransport(
         } finally {
             try { conn?.disconnect() } catch (_: Exception) {}
         }
+    }
+
+    private companion object {
+        /** 建连超时（毫秒）。 */
+        const val CONNECT_TIMEOUT_MS = 20_000
+
+        /** 首包/包间读超时（毫秒）。推理模型首个 token 可能很久，60s 会误杀。 */
+        const val READ_TIMEOUT_MS = 180_000
     }
 }

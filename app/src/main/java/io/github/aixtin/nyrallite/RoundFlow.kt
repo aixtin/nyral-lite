@@ -14,7 +14,7 @@ internal class RoundFlow(
     /** 创建一条新的流式 AI 消息；每个模型轮次对应一条，正文与思考互不串轮。 */
     fun startRound() {
         val pos = state.messages.size
-        state.messages.add(Message("ai", "", streaming = true))
+        state.messages.add(Message(Message.ROLE_AI, "", streaming = true))
         state.streamingPos = pos
         typewriter.begin(pos)
         state.adapter.notifyItemInserted(pos)
@@ -51,7 +51,7 @@ internal class RoundFlow(
         typewriter.stop()
         if (state.streamingPos in state.messages.indices) {
             val msg = state.messages[state.streamingPos]
-            msg.role = "error"
+            msg.role = Message.ROLE_ERROR
             msg.content = state.activity.getString(R.string.error_with_retry, message)
             msg.thinking = ""
             msg.streaming = false
@@ -75,8 +75,8 @@ internal class RoundFlow(
             msg.thinking = typewriter.thinkingSnapshot
             msg.streaming = false
             // 工具轮正文已随 assistant(tool_calls) 入历史，这里只补最终一轮
-            if (msg.role == "ai" && raw.isNotBlank()) {
-                state.history.add(ChatTurn("assistant", raw))
+            if (msg.role == Message.ROLE_AI && raw.isNotBlank()) {
+                state.history.add(ChatTurn(ChatTurn.ROLE_ASSISTANT, raw))
             }
             state.adapter.updateAi(state.streamingPos, finalText, msg.thinking) {
                 // 取消时「（已停止）」刚追加到文末，等这段内容上屏后再贴底

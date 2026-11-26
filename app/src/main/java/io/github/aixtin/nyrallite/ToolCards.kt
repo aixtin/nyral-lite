@@ -18,7 +18,7 @@ internal class ToolCards(
     fun insert(calls: List<ToolCall>) {
         val map = HashMap<String, Int>()
         calls.forEach { call ->
-            messages.add(Message("tool", "", toolCard = ToolCard(call.name, call.arguments)))
+            messages.add(Message(Message.ROLE_TOOL, "", toolCard = ToolCard(call.name, call.arguments)))
             val pos = messages.lastIndex
             if (call.id.isNotBlank()) map[call.id] = pos
             adapter.notifyItemInserted(pos)

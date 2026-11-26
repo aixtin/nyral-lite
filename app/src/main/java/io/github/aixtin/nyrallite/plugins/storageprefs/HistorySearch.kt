@@ -1,5 +1,6 @@
 package io.github.aixtin.nyrallite.plugins.storageprefs
 
+import io.github.aixtin.nyrallite.Message
 import io.github.aixtin.nyrallite.contract.SessionMessage
 
 /**
@@ -17,7 +18,7 @@ internal object HistorySearch {
         if (terms.isEmpty()) return emptyList()
         return messages.asSequence()
             .mapIndexedNotNull { index, msg ->
-                if (msg.role != "user" && msg.role != "ai") return@mapIndexedNotNull null
+                if (msg.role != Message.ROLE_USER && msg.role != Message.ROLE_AI) return@mapIndexedNotNull null
                 if (msg.content.isBlank()) return@mapIndexedNotNull null
                 val text = msg.content.lowercase()
                 val score = terms.count { text.contains(it) }

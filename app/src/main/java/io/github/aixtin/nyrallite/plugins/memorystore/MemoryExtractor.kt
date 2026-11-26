@@ -53,14 +53,14 @@ class MemoryExtractor(
 
     private suspend fun extract(messages: List<Message>): List<Pair<String, String>> {
         val transcript = messages
-            .filter { (it.role == "user" || it.role == "ai") && it.content.isNotBlank() }
+            .filter { (it.role == Message.ROLE_USER || it.role == Message.ROLE_AI) && it.content.isNotBlank() }
             .takeLast(MAX_MESSAGES)
             .joinToString("\n") { "${it.role}: ${it.content.take(MAX_CHARS_PER_MESSAGE)}" }
         if (transcript.isBlank()) return emptyList()
 
         val request = ChatRequest(
             systemPrompt = promptWithKnown(),
-            turns = listOf(ChatTurn("user", transcript)),
+            turns = listOf(ChatTurn(ChatTurn.ROLE_USER, transcript)),
         )
         val raw = StringBuilder()
         suspendCancellableCoroutine { cont ->

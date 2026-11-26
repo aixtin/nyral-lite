@@ -31,7 +31,7 @@ internal object PromptAssembler {
     /** 从 history 里取最后一条用户消息，匹配 Skill 指令块。无匹配返回空串。 */
     private suspend fun matchSkill(app: App, history: List<ChatTurn>): String {
         val scanner = app.kernel.services.getOrNull(SkillScanner::class) ?: return ""
-        val lastUserMsg = history.lastOrNull { it.role == "user" }?.content ?: return ""
+        val lastUserMsg = history.lastOrNull { it.role == ChatTurn.ROLE_USER }?.content ?: return ""
         if (lastUserMsg.isBlank()) return ""
         return scanner.match(lastUserMsg)
     }

@@ -13,16 +13,16 @@ internal object HistoryRebuilder {
         val pendingAssistant = StringBuilder()
         fun flush() {
             if (pendingAssistant.isBlank()) return
-            history.add(ChatTurn("assistant", pendingAssistant.toString()))
+            history.add(ChatTurn(ChatTurn.ROLE_ASSISTANT, pendingAssistant.toString()))
             pendingAssistant.setLength(0)
         }
         loaded.forEach { msg ->
             when (msg.role) {
-                "user" -> {
+                Message.ROLE_USER -> {
                     flush()
-                    history.add(ChatTurn("user", msg.content, attachments = msg.attachments))
+                    history.add(ChatTurn(ChatTurn.ROLE_USER, msg.content, attachments = msg.attachments))
                 }
-                "ai" -> if (msg.content.isNotBlank()) {
+                Message.ROLE_AI -> if (msg.content.isNotBlank()) {
                     if (pendingAssistant.isNotEmpty()) pendingAssistant.append("\n\n")
                     pendingAssistant.append(msg.content)
                 }

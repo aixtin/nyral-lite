@@ -54,7 +54,7 @@ class ToolRoundRunner(
         onResult: (ToolCall, ToolResult, Long) -> Unit = { _, _, _ -> },
     ): Boolean = withContext(Dispatchers.IO) {
         val current = registry ?: return@withContext false
-        history.add(ChatTurn("assistant", assistantContent, toolCalls = calls))
+        history.add(ChatTurn(ChatTurn.ROLE_ASSISTANT, assistantContent, toolCalls = calls))
         var index = 0
         try {
             while (index < calls.size) {
@@ -69,13 +69,13 @@ class ToolRoundRunner(
                     ToolResult("工具调用失败：${e.message}", true)
                 }
                 onResult(call, result, SystemClock.elapsedRealtime() - startedAt)
-                history.add(ChatTurn("tool", result.content, toolCallId = call.id))
+                history.add(ChatTurn(ChatTurn.ROLE_TOOL, result.content, toolCallId = call.id))
                 index++
             }
         } catch (e: CancellationException) {
             // 取消也要补齐剩余 tool 结果，否则历史里的 tool_calls 不完整，后续请求会被拒
             while (index < calls.size) {
-                history.add(ChatTurn("tool", "已取消", toolCallId = calls[index].id))
+                history.add(ChatTurn(ChatTurn.ROLE_TOOL, "已取消", toolCallId = calls[index].id))
                 onResult(calls[index], ToolResult("已取消", true), 0L)
                 index++
             }

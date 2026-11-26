@@ -21,7 +21,7 @@ object ContextWindow {
     fun fit(history: List<ChatTurn>, maxTokens: Int = DEFAULT_MAX_TOKENS): Result {
         var truncated = 0
         val capped = history.map { turn ->
-            if (turn.role != "tool" || turn.content.length <= MAX_TOOL_RESULT_CHARS) {
+            if (turn.role != ChatTurn.ROLE_TOOL || turn.content.length <= MAX_TOOL_RESULT_CHARS) {
                 turn
             } else {
                 truncated++
@@ -34,7 +34,7 @@ object ContextWindow {
         // 接口无状态，每轮都会重传全部历史：只保留最近一个带附件的 user 轮，
         // 更早的图片换成文字占位，否则第三轮起延迟和费用会翻倍。
         val lastWithAttachments = capped.indexOfLast {
-            it.role == "user" && it.attachments.isNotEmpty()
+            it.role == ChatTurn.ROLE_USER && it.attachments.isNotEmpty()
         }
         val turns = if (lastWithAttachments < 0) {
             capped
@@ -51,7 +51,7 @@ object ContextWindow {
             }
         }
 
-        val userStarts = turns.indices.filter { turns[it].role == "user" }
+        val userStarts = turns.indices.filter { turns[it].role == ChatTurn.ROLE_USER }
         var start = userStarts.firstOrNull() ?: 0
         var nextUser = 1
         // 每次丢弃一个完整的早期问答块；最后一个 user 块始终保留
@@ -63,10 +63,10 @@ object ContextWindow {
 
         // 当前问答块仍过大时，从最老的工具轮开始成组移除，绝不只删 tool 结果
         while (estimate(kept, 0) > maxTokens) {
-            val callIndex = kept.indexOfFirst { it.role == "assistant" && it.toolCalls.isNotEmpty() }
+            val callIndex = kept.indexOfFirst { it.role == ChatTurn.ROLE_ASSISTANT && it.toolCalls.isNotEmpty() }
             if (callIndex < 0) break
             var end = callIndex + 1
-            while (end < kept.size && kept[end].role == "tool") end++
+            while (end < kept.size && kept[end].role == ChatTurn.ROLE_TOOL) end++
             dropped += end - callIndex
             kept.subList(callIndex, end).clear()
         }

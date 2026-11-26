@@ -22,7 +22,7 @@ class ScrollToBottomButton(
 
     private val hideRunnable = Runnable {
         if (button.visibility == View.VISIBLE) {
-            button.animate().alpha(0f).setDuration(200).withEndAction {
+            button.animate().alpha(0f).setDuration(FADE_OUT_MS).withEndAction {
                 button.visibility = View.GONE
             }.start()
         }
@@ -46,7 +46,7 @@ class ScrollToBottomButton(
             onScrollStateChanged(newState)
             if (newState == RecyclerView.SCROLL_STATE_IDLE && button.visibility == View.VISIBLE) {
                 handler.removeCallbacks(hideRunnable)
-                handler.postDelayed(hideRunnable, 1200)
+                handler.postDelayed(hideRunnable, AUTO_HIDE_AFTER_IDLE_MS)
             }
         }
     }
@@ -71,8 +71,18 @@ class ScrollToBottomButton(
         if (button.visibility != View.VISIBLE) {
             button.visibility = View.VISIBLE
             button.alpha = 0f
-            button.animate().alpha(1f).setDuration(150).start()
+            button.animate().alpha(1f).setDuration(FADE_IN_MS).start()
         }
-        handler.postDelayed(hideRunnable, 1500)
+        handler.postDelayed(hideRunnable, AUTO_HIDE_AFTER_SHOW_MS)
+    }
+
+    private companion object {
+        /** 显示/隐藏动画时长（毫秒）。 */
+        const val FADE_IN_MS: Long = 150L
+        const val FADE_OUT_MS: Long = 200L
+        /** 从手势停止到自动隐藏的延迟（毫秒）。 */
+        const val AUTO_HIDE_AFTER_IDLE_MS: Long = 1_200L
+        /** 显示后到自动隐藏的延迟（毫秒）。 */
+        const val AUTO_HIDE_AFTER_SHOW_MS: Long = 1_500L
     }
 }

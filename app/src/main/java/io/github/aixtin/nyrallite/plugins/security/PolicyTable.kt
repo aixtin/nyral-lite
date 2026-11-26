@@ -1,6 +1,5 @@
 package io.github.aixtin.nyrallite.plugins.security
 
-import android.util.Log
 import io.github.aixtin.nyrallite.contract.ApprovalDecision
 import io.github.aixtin.nyrallite.contract.SecurityMode
 import io.github.aixtin.nyrallite.contract.ToolApproval
@@ -29,7 +28,6 @@ internal class PolicyTable(
     private val sessionAllowed: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     fun decide(request: ToolCallRequest): GateResult {
-        Log.i(TAG, "tool.before-call ${request.pluginId}/${request.tool} args=${request.arguments.take(200)}")
         val rules = PolicyRules.from(config)
         val outcome = when (val verdict = rules.decide(request.tool)) {
             PolicyVerdict.Allow -> Outcome(
@@ -80,8 +78,6 @@ internal class PolicyTable(
     private data class Outcome(val result: GateResult, val reason: String)
 
     private companion object {
-        const val TAG = "SecurityPolicy"
-
         /** 确认最长等待时间，超时按拒绝处理。 */
         const val CONFIRM_TIMEOUT_MS = 120_000L
 

@@ -119,8 +119,8 @@ class ChatController(
     /** 人设开场白：只在空会话里插入，作为第一条 AI 消息；有内容时不动。 */
     fun insertGreeting(text: String) {
         if (text.isBlank() || state.messages.isNotEmpty()) return
-        state.messages.add(Message("ai", text))
-        state.history.add(ChatTurn("assistant", text))
+        state.messages.add(Message(Message.ROLE_AI, text))
+        state.history.add(ChatTurn(ChatTurn.ROLE_ASSISTANT, text))
         state.adapter.notifyItemInserted(0)
         state.rv.post { ScrollPinner.pinStable(state.rv) }
         onChanged()
