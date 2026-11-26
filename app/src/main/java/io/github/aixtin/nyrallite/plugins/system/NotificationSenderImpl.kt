@@ -1,8 +1,11 @@
 package io.github.aixtin.nyrallite.plugins.system
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.github.aixtin.nyrallite.contract.NotificationContract
@@ -27,6 +30,13 @@ class NotificationSenderImpl(
         id: Int,
     ) {
         ensureChannel(channelId)
+        // 未授予通知权限时直接放弃，避免 notify 抛 SecurityException
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            appContext.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
         val safeTitle = title.take(64)
         val safeBody = body.take(400)
 

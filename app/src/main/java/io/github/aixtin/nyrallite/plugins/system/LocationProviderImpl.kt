@@ -1,6 +1,7 @@
 package io.github.aixtin.nyrallite.plugins.system
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -45,6 +46,8 @@ class LocationProviderImpl(private val context: Context) : LocationContract {
         return lastKnown()
     }
 
+    /** 调用前已校验 [hasPermission]，lint 无法跨方法推断，故显式忽略。 */
+    @SuppressLint("MissingPermission")
     override fun lastKnown(): LocationFix? {
         if (!hasPermission()) return null
         val manager = locationManager ?: return null
@@ -59,7 +62,8 @@ class LocationProviderImpl(private val context: Context) : LocationContract {
             ?.toFix()
     }
 
-    /** 向单个 provider 请求一次位置更新；取消时移除监听，避免泄漏。 */
+    /** 向单个 provider 请求一次位置更新；取消时移除监听，避免泄漏。调用方已校验权限。 */
+    @SuppressLint("MissingPermission")
     private suspend fun awaitSingleUpdate(
         manager: LocationManager,
         provider: String,
