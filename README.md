@@ -51,6 +51,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - 动态 Dex 插件扩展
 - 三档安全门禁与工具审计日志
 - 启动时静默检查 GitHub Release 更新
+- 动态插件：release 包保留 Kotlin 标准库，debug 构建的插件可直接导入
 
 ## 插件开发
 

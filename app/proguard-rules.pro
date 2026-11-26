@@ -19,5 +19,11 @@
 # org.json：平台提供，仅告警静默
 -dontwarn org.json.**
 
-# Kotlin 协程：内部反射与调试元数据
+# Kotlin 标准库：外部插件不打包 stdlib、依赖宿主提供，
+# 若被 R8 裁掉插件用到的类（如 kotlin.collections.SetsKt）会在加载时 NoClassDefFoundError。
+-keep class kotlin.** { *; }
+-dontwarn kotlin.**
+
+# 协程：插件常直接使用（withContext / launch 等），一并保留
+-keep class kotlinx.coroutines.** { *; }
 -dontwarn kotlinx.coroutines.**

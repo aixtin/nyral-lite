@@ -477,9 +477,10 @@ ctx.effect {
 | 现象 | 原因 / 处理 |
 |---|---|
 | 导入提示"不是有效的插件 APK" | APK 小于 1KB、或读不到签名 |
+| 导入提示"签名未被信任或入口类未找到" | 先看 logcat `NyralDexLoader` 的 `Caused by`：① `NoClassDefFoundError: kotlin.*` 说明宿主 release 包把标准库裁掉了（宿主已 `keep kotlin.**`，旧版本会出）；② `entry class instantiate failed` 多为插件复制的契约与宿主版本不一致；③ 都没有则是 `assets/plugin-entry.txt` 缺失或入口类名拼错 |
 | 导入提示"入口类未找到" | `assets/plugin-entry.txt` 缺失或 `Plugin-Entry:` 拼错（旧版兼容 `META-INF/MANIFEST.MF`），或入口类不在 APK 里 |
 | 导入提示"install() 抛异常" | 插件 `install()` 内部报错，logcat 有堆栈；修复后重新导入即可 |
-| 弹"未知签名的插件" | 签名与宿主不同；核对指纹后信任，或改用同一 debug keystore |
+| 弹"未知签名的插件" | 签名与宿主不同；核对指纹后信任，或改用同一签名。注意正式版宿主用发行私钥，debug 签的插件第一次导入必然弹窗，确认信任即可 |
 | 插件装了但工具没出现 | 没 `provide(ToolSource::class, ...)`；或 `list()` 抛异常（看 logcat）；或工具被同名工具覆盖 |
 | 调用时报 `NoSuchMethodError` / `AbstractMethodError` | 插件里复制的契约与宿主版本不一致（宿主升级过接口） |
 | 调用时报 `ClassNotFoundException` | 插件里引用了宿主没有的类；把依赖打进 APK，或改用宿主自带能力 |
