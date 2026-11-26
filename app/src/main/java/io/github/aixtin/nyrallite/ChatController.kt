@@ -79,6 +79,8 @@ class ChatController(
     }
 
     fun pinToBottom() {
+        // 手动回到底部：恢复跟随，后续新内容继续贴底
+        typewriter.followAnswer = true
         ScrollPinner.pin(rv)
     }
 

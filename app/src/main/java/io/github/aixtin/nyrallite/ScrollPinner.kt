@@ -30,6 +30,36 @@ internal object ScrollPinner {
         }
     }
 
+    /**
+     * 贴底跟随，但最多把本条消息推到"顶部贴住列表顶部"为止：之后停住，
+     * 用户可以从头往下读，新内容继续在下方生成。
+     *
+     * [onCapped] 在本帧真的被截停时回调，调用方据此关闭后续跟随。
+     */
+    fun pinUntilTop(rv: RecyclerView, position: Int, onCapped: () -> Unit) {
+        rv.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    rv.viewTreeObserver.removeOnPreDrawListener(this)
+                    val remaining = rv.computeVerticalScrollRange() -
+                        rv.computeVerticalScrollExtent() - rv.computeVerticalScrollOffset()
+                    val item = rv.layoutManager?.findViewByPosition(position)
+                    val allowed = (item?.top ?: Int.MAX_VALUE) - rv.paddingTop
+                    when {
+                        // 顶部已到（或越过）列表顶部：本就该停
+                        allowed <= 0 -> onCapped()
+                        allowed < remaining -> {
+                            rv.scrollBy(0, allowed)
+                            onCapped()
+                        }
+                        else -> rv.scrollBy(0, remaining)
+                    }
+                    return true
+                }
+            },
+        )
+    }
+
     /** 收敛补齐的最大轮数，避免极端情况下无限重排。 */
     private const val MAX_PASSES = 4
 

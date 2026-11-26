@@ -5,11 +5,8 @@ import android.os.Looper
 import androidx.recyclerview.widget.RecyclerView
 
 /**
- * 流式回复的打字机：网络整块到达的文本先入缓冲，显示指针逐帧前进，
- * 积压越多步长越大自动追赶，避免一串一串蹦。
- *
- * 只负责“一条 AI 消息的正文/思考如何逐步上屏 + 贴底”，
- * 何时发起下一轮、何时收尾由 [ChatController] 决定。
+ * 流式打字机：文本先入缓冲，显示指针逐帧前进（积压越多步长越大），
+ * 负责一条 AI 消息的正文/思考上屏与贴底；轮次编排在 [ChatController]。
  */
 class Typewriter(
     private val rv: RecyclerView,
@@ -27,16 +24,17 @@ class Typewriter(
     private var shownThinkingLen = 0
     private var scheduled = false
     private var finished = false
-
     /** 当前流式消息末尾段是否是表格（updateAi 返回）：表格 measure 重，自动降 30fps。 */
     private var tailIsTable = false
 
     /** 用户手指/惯性滚动进行中：冻结显示指针，避免每帧 requestLayout 与手势抢帧。 */
     var paused = false
 
+    /** 是否继续跟随本条回答：其顶部贴到列表顶部后置 false，避免内容一直往上顶。 */
+    var followAnswer = true
+
     /** 当前模型轮次已接收的正文全文（含尚未上屏的部分）。 */
     val textSnapshot: String get() = text.toString()
-
     val thinkingSnapshot: String get() = thinking.toString()
 
     private val tick = object : Runnable {
@@ -69,7 +67,7 @@ class Typewriter(
                 val wasPinned = !rv.canScrollVertically(1)
                 adapter.updateThinking(pos, thinking.toString())
                 shownThinkingLen = thinking.length
-                if (wasPinned) ScrollPinner.pinOnDraw(rv)
+                if (wasPinned && followAnswer) ScrollPinner.pinOnDraw(rv)
             }
             if (backlog > 0) {
                 val step = when {
@@ -85,7 +83,9 @@ class Typewriter(
                     text.substring(0, displayedLen),
                     thinking.toString(),
                 )
-                if (wasPinned) ScrollPinner.pinOnDraw(rv)
+                if (wasPinned && followAnswer) {
+                    ScrollPinner.pinUntilTop(rv, pos) { followAnswer = false }
+                }
             }
             if (finished && displayedLen >= target) {
                 scheduled = false
@@ -104,6 +104,7 @@ class Typewriter(
         thinking.setLength(0)
         displayedLen = 0
         shownThinkingLen = 0
+        followAnswer = true
         scheduled = false
         finished = false
         tailIsTable = false
