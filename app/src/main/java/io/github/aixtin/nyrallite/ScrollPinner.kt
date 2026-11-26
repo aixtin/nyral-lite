@@ -1,5 +1,6 @@
 package io.github.aixtin.nyrallite
 
+import android.util.Log
 import android.view.ViewTreeObserver
 import androidx.recyclerview.widget.RecyclerView
 
@@ -56,15 +57,12 @@ internal object ScrollPinner {
                         rv.computeVerticalScrollExtent() - rv.computeVerticalScrollOffset()
                     val item = rv.layoutManager?.findViewByPosition(position)
                     val allowed = (item?.top ?: Int.MAX_VALUE) - rv.paddingTop
-                    // 条目本身没有超过一屏时不封顶：否则停下后下方会留一大块空白
-                    val viewport = rv.height - rv.paddingTop - rv.paddingBottom
-                    if (item != null && item.height <= viewport) {
-                        rv.scrollBy(0, remaining)
-                        return true
-                    }
                     when {
                         // 顶部已到（或越过）列表顶部：本就该停
-                        allowed <= 0 -> onCapped()
+                        allowed <= 0 -> {
+                            Log.d("TW", "capped top=${item?.top} h=${item?.height} rem=$remaining")
+                            onCapped()
+                        }
                         allowed < remaining -> {
                             rv.scrollBy(0, allowed)
                             onCapped()

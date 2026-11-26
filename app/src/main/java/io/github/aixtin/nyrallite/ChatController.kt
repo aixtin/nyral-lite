@@ -64,15 +64,22 @@ class ChatController(
     var onToolsWarning: ((String?) -> Unit)? = null
 
     /** 用户手指/惯性滚动进行中：暂停流式渲染。 */
-    /** 列表滚动状态：滚动中暂停流式渲染；静止时再按"是否在底部"决定跟随。 */
+    /** 本次滚动是否由用户拖动引起；只有这种停稳才重新判定跟随。 */
+    private var sawDrag = false
+
+    /** 列表滚动状态：滚动中暂停流式渲染；用户拖动停稳后再按是否在底部决定跟随。 */
     var listScrollState: Int = RecyclerView.SCROLL_STATE_IDLE
         set(value) {
             field = value
             typewriter.paused = value != RecyclerView.SCROLL_STATE_IDLE
-            // 部分机型（Android 10）键盘/布局变化会派发 DRAGGING/SETTLING，
-            // 一收到就关跟随会误伤；改为停稳后再判断：在底部就继续跟，不在就停
-            if (value == RecyclerView.SCROLL_STATE_IDLE) {
-                typewriter.followAnswer = ScrollPinner.nearBottom(rv, toleranceDp = 48)
+            when (value) {
+                RecyclerView.SCROLL_STATE_DRAGGING -> sawDrag = true
+                RecyclerView.SCROLL_STATE_IDLE -> if (sawDrag) {
+                    // 只有用户主动拖过才重新判定，避免布局/键盘引起的空 IDLE 误关跟随
+                    sawDrag = false
+                    typewriter.followAnswer = ScrollPinner.nearBottom(rv, toleranceDp = 48)
+                    android.util.Log.d("TW", "idle-after-drag follow=${typewriter.followAnswer}")
+                }
             }
         }
 
