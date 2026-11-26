@@ -69,8 +69,11 @@ class ChatController(
         set(value) {
             val wasScrolling = typewriter.paused
             typewriter.paused = value
-            // 松手时若用户已滑回底部，恢复跟随，新内容继续贴底
-            if (wasScrolling && !value && ScrollPinner.nearBottom(rv)) {
+            if (value) {
+                // 用户接管滚动：本轮不再自动跟随，避免抢用户的阅读位置
+                typewriter.followAnswer = false
+            } else if (wasScrolling && ScrollPinner.nearBottom(rv)) {
+                // 松手时已滑回底部：恢复跟随
                 typewriter.followAnswer = true
             }
         }
