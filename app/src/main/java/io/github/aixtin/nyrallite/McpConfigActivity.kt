@@ -41,8 +41,10 @@ class McpConfigActivity : AppCompatActivity() {
         btnTest.setOnClickListener { testMcp(probe, btnTest, tvStatus, form) }
 
         findViewById<Button>(R.id.btn_save).setOnClickListener {
-            form.save()
-            finish()
+            confirmCleartext(form.draft().serverUrl) {
+                form.save()
+                finish()
+            }
         }
     }
 

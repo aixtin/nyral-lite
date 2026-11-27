@@ -188,4 +188,8 @@
     <string name="upd_message">已发布新版本，前往 Releases 页面下载安装包。覆盖安装不会丢失会话与设置。</string>
     <string name="upd_go">前往下载</string>
     <string name="upd_later">稍后</string>
+    <string name="cleartext_warning_title">明文 HTTP 地址</string>
+    <string name="cleartext_warning_message">该地址使用明文 HTTP 传输，密钥和对话内容可能被同一网络中的设备截获。局域网自建服务常走 http，确认风险后可继续。</string>
+    <string name="cleartext_warning_cancel">取消</string>
+    <string name="cleartext_warning_save">仍要保存</string>
 </resources>

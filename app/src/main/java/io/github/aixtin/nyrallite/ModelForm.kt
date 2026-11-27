@@ -25,6 +25,9 @@ internal class ModelForm(private val activity: AppCompatActivity) {
         inContext.setText(config.contextTokens.takeIf { it > 0 }?.toString().orEmpty())
     }
 
+    /** 当前输入的端点地址，保存前用于明文警告判断。 */
+    fun urlText(): String = inUrl.text.toString()
+
     /** 校验并保存；false 表示校验失败，错误已经提示过。 */
     fun save(): Boolean {
         val key = inKey.text.toString().trim()

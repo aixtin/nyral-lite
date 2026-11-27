@@ -25,7 +25,7 @@ class ModelConfigActivity : AppCompatActivity() {
         val form = ModelForm(this)
         form.load()
         findViewById<Button>(R.id.btn_save).setOnClickListener {
-            if (form.save()) finish()
+            confirmCleartext(form.urlText()) { if (form.save()) finish() }
         }
     }
 }
