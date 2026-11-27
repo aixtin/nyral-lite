@@ -25,6 +25,7 @@ adb -s <device-ip>:5555 shell am start -n io.github.aixtin.nyrallite/.MainActivi
 4. **表格上限常量联动**：`TableFiller` 的行/列上限改动必须同步 `PromptDefaults.SYSTEM` 里的约束文案数值，有断言测试守护。
 5. **文件行数红线约 400 行**：超出按职责拆（渲染 / 状态 / 动画分离），不按层次拆。
 6. **结构性重构绑定触发条件**：`Message` 改为有序 parts 模型（Thinking/Text/ToolCall）只在引入工具调用或接入交错思考模型时做，不提前。
+7. **契约变更多处同步**：改 `contract/` 任何接口，必须同步 `testplugin` 的契约副本和 `docs/plugin-dev.md` 的契约说明；给接口新增成员必须带默认实现（`-Xjvm-default=all` 已启用），禁止破坏性变更。
 
 ## 已知坑（别再踩）
 

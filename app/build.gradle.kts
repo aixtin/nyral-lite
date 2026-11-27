@@ -66,6 +66,8 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+        // 接口默认实现编译成 JVM default 方法：旧插件未实现新成员也能继承，避免破坏性变更
+        freeCompilerArgs += "-Xjvm-default=all"
     }
 }
 

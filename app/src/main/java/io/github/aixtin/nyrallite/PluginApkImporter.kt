@@ -33,7 +33,7 @@ internal class PluginApkImporter(
                 onStatus("导入失败：不是有效的插件 APK", true)
                 return@launch
             }
-            if (app.dexLoader.isTrusted(staged.fileSha256)) finishImport(staged)
+            if (app.dexLoader.isTrusted(staged.fileSha256, staged.certFingerprint)) finishImport(staged)
             else confirmThirdPartySigner(staged)
         }
     }

@@ -48,14 +48,11 @@ class DexPluginLoader(
     private val signatures = ApkSignatures(appContext, store)
     private val pool = DexPool(appContext, signatures)
 
-    init {
-        signatures.restore()
-    }
+    /** 导入确认后的信任判定：哈希在 pending，或（仅 debug 构建）与宿主同签名。 */
+    fun isTrusted(fileSha256: String, certFingerprint: String?): Boolean =
+        signatures.isTrusted(fileSha256, certFingerprint)
 
-    /** APK 文件哈希是否在信任名单内。 */
-    fun isTrusted(fileSha256: String): Boolean = signatures.isTrusted(fileSha256)
-
-    /** 用户确认信任某个插件 APK：立即生效并持久化。 */
+    /** 用户确认信任某个插件 APK：先记 pending，装载成功后绑定插件 id 持久化。 */
     fun trust(fileSha256: String) = signatures.trust(fileSha256)
 
     /**
@@ -101,7 +98,7 @@ class DexPluginLoader(
 
     /** 导入第二步：签名已受信任后才会被调用。 */
     fun installStaged(staged: StagedApk): LoadedPlugin? {
-        if (!signatures.isTrusted(staged.fileSha256)) {
+        if (!signatures.isTrusted(staged.fileSha256, staged.certFingerprint)) {
             Log.e(TAG, "installStaged: APK 哈希未受信任 ${staged.fileSha256}")
             staged.file.delete()
             return null
@@ -118,12 +115,17 @@ class DexPluginLoader(
             staged.file.delete()
             return null
         }
-        if (realId == first.pluginId) return first
+        if (realId == first.pluginId) {
+            signatures.bind(realId, staged.fileSha256)
+            return first
+        }
 
         // 声明的 id 与临时文件名不同：释放临时 loader，把 APK 归一到 {id}.apk 再重新加载。
         // 不直接 rename 已加载的 dex：DexClassLoader 按路径懒加载，改路径可能抛 FileNotFound。
         pool.unload(first.pluginId, deleteApk = false)
-        return pool.commit(staged.file, realId)
+        val loaded = pool.commit(staged.file, realId)
+        if (loaded != null) signatures.bind(realId, staged.fileSha256)
+        return loaded
     }
 
     /** 冷启动恢复：从已持久化的 {pluginId}.apk 重新加载。 */

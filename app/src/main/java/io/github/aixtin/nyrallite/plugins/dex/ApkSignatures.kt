@@ -3,6 +3,7 @@ package io.github.aixtin.nyrallite.plugins.dex
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
+import android.content.pm.ApplicationInfo
 import java.io.File
 import java.security.MessageDigest
 import java.security.cert.CertificateFactory
@@ -10,35 +11,67 @@ import java.security.cert.X509Certificate
 import java.util.zip.ZipFile
 
 /**
- * APK 信任校验：信任对象是整个 APK 文件的 SHA-256，而不是签名者证书。
+ * APK 信任校验：信任对象是整个 APK 文件的 SHA-256，按插件 id 绑定。
  *
  * 证书指纹只回答「谁签的」，不回答「内容有没有被改过」——解析签名块拿证书
  * 并不校验签名与内容的对应关系，改过内容的 APK 可以原样保留旧证书。
  * 文件哈希才是完整性证明：任何字节改动都会改变哈希。代价是插件每次更新
  * 都要重新确认一次，这是有意为之。
  *
- * 证书指纹仍会提取，但只用于信任弹窗里给用户人工核对来源。
+ * 信任记录按插件 id 绑定（更新覆盖写、卸载即删），回装旧版本会因哈希
+ * 对不上重新弹窗。证书指纹仍会提取，但只用于弹窗展示与 debug 豁免判定。
  */
 internal class ApkSignatures(
     private val appContext: Context,
     private val store: TrustedApkStore,
 ) {
-    private val trustedHashes = LinkedHashSet<String>()
+    /** 已确认但尚未绑定插件 id 的哈希：导入确认后、装载完成前的过渡窗口用。 */
+    private val pending = LinkedHashSet<String>()
 
-    /** APK 文件整体 SHA-256 是否在信任名单内。 */
-    fun isTrusted(fileSha256: String): Boolean = fileSha256 in trustedHashes
+    /** 宿主自身签名证书指纹：仅 debug 构建用于豁免同签名的测试插件。 */
+    private val hostCertSha: String? = collectHostCert()
 
-    /** 用户确认信任某个插件 APK：立即生效并持久化。 */
+    /** 导入确认后的信任判定：哈希在 pending，或（仅 debug）与宿主同签名。 */
+    fun isTrusted(fileSha256: String, certFingerprint: String?): Boolean =
+        fileSha256 in pending || isDebugHostSigned(certFingerprint)
+
+    /** 加载前的信任判定：插件 id 绑定的哈希匹配，或走 [isTrusted] 的过渡通道。 */
+    fun isTrusted(pluginId: String, fileSha256: String, certFingerprint: String?): Boolean =
+        store.get(pluginId) == fileSha256 || isTrusted(fileSha256, certFingerprint)
+
+    /** 用户确认信任某个插件 APK：先记 pending，装载成功后由 [bind] 绑定 id 持久化。 */
     fun trust(fileSha256: String) {
-        trustedHashes.add(fileSha256)
-        store.add(fileSha256)
+        pending.add(fileSha256)
     }
 
-    /** 启动时把持久化的信任记录装回内存。 */
-    fun restore() {
-        trustedHashes.addAll(store.all())
-        if (trustedHashes.isEmpty()) Log.i(TAG, "restore: 尚无受信任的插件 APK")
+    /** 装载成功：文件哈希绑定到插件 id（覆盖写，更新即换绑）。 */
+    fun bind(pluginId: String, fileSha256: String) {
+        store.put(pluginId, fileSha256)
+        pending.remove(fileSha256)
     }
+
+    /** 插件被彻底移除：信任记录一并删除，旧版本回装需重新确认。 */
+    fun revoke(pluginId: String) {
+        store.remove(pluginId)
+    }
+
+    /** 仅 debug 构建生效：与宿主同签名（同一 debug keystore）的测试插件免弹窗。 */
+    private fun isDebugHostSigned(certFingerprint: String?): Boolean =
+        isDebugBuild && certFingerprint != null && certFingerprint == hostCertSha
+
+    private val isDebugBuild: Boolean =
+        appContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+
+    private fun collectHostCert(): String? = runCatching {
+        val pm = appContext.packageManager
+        @Suppress("DEPRECATION")
+        val pi = pm.getPackageInfo(
+            appContext.packageName,
+            PackageManager.GET_SIGNING_CERTIFICATES or PackageManager.GET_SIGNATURES,
+        )
+        pi.signingInfo?.apkContentsSigners?.firstOrNull()?.let { sha256(it.toByteArray()) }
+            ?: pi.signatures?.firstOrNull()?.let { sha256(it.toByteArray()) }
+    }.getOrNull()
 
     /** 整个 APK 文件的 SHA-256：信任判定与每次加载前的完整性校验都用它。 */
     fun fileSha256Of(apkFile: File): String? = runCatching {
@@ -54,7 +87,7 @@ internal class ApkSignatures(
         md.digest().joinToString("") { "%02x".format(it) }
     }.getOrNull()
 
-    /** 签名者证书的 SHA-256（v2/v3 优先，fallback v1）；只用于弹窗展示，不做信任判定。 */
+    /** 签名者证书的 SHA-256（v2/v3 优先，fallback v1）；只用于展示与 debug 豁免，不做信任判定。 */
     fun certFingerprintOf(apkFile: File): String? {
         try {
             @Suppress("DEPRECATION")

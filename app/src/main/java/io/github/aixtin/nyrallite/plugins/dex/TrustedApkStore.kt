@@ -1,24 +1,47 @@
 package io.github.aixtin.nyrallite.plugins.dex
 
 import android.content.Context
+import org.json.JSONObject
 
 /**
- * 用户显式信任的插件 APK 文件哈希（整文件 SHA-256）。
- * 信任对象是文件本身而不是签名者证书：更新即新文件，需要重新确认。
+ * 用户显式信任的插件 APK 文件哈希，按插件 id 绑定：Map<pluginId, fileSha256>。
+ *
+ * 绑定 id 是刻意的：更新即覆盖写，旧版本回装因哈希对不上会重新弹窗，
+ * 「更新需重新确认」不会被回装路径绕开。卸载即删记录。
  */
 class TrustedApkStore(context: Context) {
 
     private val prefs = context.applicationContext
         .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun all(): Set<String> = prefs.getStringSet(KEY_HASHES, null)?.toSet() ?: emptySet()
+    fun get(pluginId: String): String? = all()[pluginId]
 
-    fun add(fileSha256: String) {
-        prefs.edit().putStringSet(KEY_HASHES, all() + fileSha256).apply()
+    fun put(pluginId: String, fileSha256: String) {
+        val map = all().toMutableMap()
+        map[pluginId] = fileSha256
+        write(map)
     }
+
+    fun remove(pluginId: String) {
+        val map = all().toMutableMap()
+        if (map.remove(pluginId) != null) {
+            write(map)
+        }
+    }
+
+    private fun write(map: Map<String, String>) {
+        val obj = JSONObject()
+        map.forEach { (k, v) -> obj.put(k, v) }
+        prefs.edit().putString(KEY_MAP, obj.toString()).apply()
+    }
+
+    private fun all(): Map<String, String> = runCatching {
+        val obj = JSONObject(prefs.getString(KEY_MAP, null) ?: "{}")
+        obj.keys().asSequence().associateWith { obj.getString(it) }
+    }.getOrDefault(emptyMap())
 
     private companion object {
         private const val PREFS_NAME = "trusted_apks"
-        private const val KEY_HASHES = "file_sha256"
+        private const val KEY_MAP = "hash_map"
     }
 }

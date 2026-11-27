@@ -7,6 +7,9 @@ package io.github.aixtin.nyrallite.contract
  */
 interface ToolSource {
 
+    /** 来源标识：门禁判定与审计日志按此归属。默认按类名生成，可与宿主接口各自演进。 */
+    val sourceId: String get() = "plugin:${javaClass.name}"
+
     /** 这个来源当前可声明的工具清单。 */
     suspend fun list(): List<ToolSpec>
 

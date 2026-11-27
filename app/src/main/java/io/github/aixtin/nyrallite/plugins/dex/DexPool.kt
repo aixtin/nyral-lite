@@ -52,7 +52,7 @@ internal class DexPool(
             Log.e(TAG, "load: 无法计算 APK 哈希")
             return null
         }
-        if (!signatures.isTrusted(sha)) {
+        if (!signatures.isTrusted(pluginId, sha, signatures.certFingerprintOf(apkFile))) {
             Log.e(TAG, "load: APK 哈希未受信任 $sha")
             return null
         }
@@ -121,6 +121,7 @@ internal class DexPool(
         val tracker = trackers.remove(pluginId)
         if (tracker != null) DexSupport.closeAll(tracker.loader)
         if (deleteApk) {
+            signatures.revoke(pluginId)
             (tracker?.apkFile ?: apkFileOf(pluginId))?.delete()
         }
     }

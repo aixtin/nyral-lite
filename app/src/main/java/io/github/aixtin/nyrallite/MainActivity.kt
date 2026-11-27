@@ -40,8 +40,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        // 工具确认对话框需要前台界面：登记当前 Activity
-        (application as App).approval.attach(this)
 
         // 消费状态栏 / 导航栏 / 键盘 inset: 标题栏不被遮挡, 输入栏与贴底消息跟随键盘抬起
         val root = findViewById<View>(R.id.root)
@@ -126,6 +124,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 工具确认对话框需要前台界面：onResume/onPause 对称登记，
+        // 从自测页等子页面返回时自动重新登记（onCreate 只跑一次，覆盖后无人恢复）
+        (application as App).approval.attach(this)
         // 历史页可能删掉了当前会话：回到主界面时切到空会话
         wiring.resetIfMissing()
         header.refresh(wiring.sessions.currentPersonaId)
@@ -139,6 +140,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
+        // 与 onResume 的登记对称：离开前台先注销，返回时重新登记
+        (application as App).approval.detach(this)
         // 切后台时立即保存，避免系统在防抖窗口内回收进程丢草稿
         wiring.flushDraft()
         super.onPause()
@@ -148,7 +151,6 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         attachments.dispose()
         voice.dispose()
-        (application as App).approval.detach(this)
         wiring.dispose()
         scrollButton.dispose()
     }

@@ -23,8 +23,8 @@
 |---|---|
 | 运行位置 | 宿主 App 进程内，共享同一个 UID、内存与 Android 权限 |
 | 加载方式 | `DexClassLoader`，父 ClassLoader 是宿主的（所以插件能直接 import 契约接口、用宿主已带的依赖） |
-| 签名信任 | 按 APK 签名证书的 SHA-256 白名单放行；与宿主同签名（同一 debug keystore）自动信任 |
-| 未签名/陌生签名 | 导入时弹窗显示包名、版本、证书指纹，用户点"信任并安装"后才加载 |
+| 签名信任 | 按插件 APK 文件整体的 SHA-256 信任（绑定插件 id），每次加载前重验，文件被改即拒载 |
+| 未签名/陌生签名 | 导入时弹窗显示包名、版本、证书指纹与文件哈希，用户点"信任并安装"后才加载；插件更新后需重新确认 |
 | 能做什么 | 注册工具（`ToolSource`）、消费宿主能力（通知/剪贴板/定位/Intent/前台任务）、读写自己的命名空间配置、订阅事件、注册拦截器 |
 | 不能做什么 | 修改聊天 UI、绕过安全门禁（工具调用建议主动过 `GateBus`，见 4.4） |
 
@@ -65,7 +65,7 @@ now-plugin/
             └── NowPlugin.kt
 ```
 
-> **为什么要复制契约源码？** 插件编译时需要这些类型；运行时 `DexClassLoader` 会优先用宿主里的同名类（parent-first），所以两边包名、类名、方法签名必须完全一致。**不要改包名，不要加/删接口方法。**
+> **为什么要复制契约源码？** 插件编译时需要这些类型；运行时 `DexClassLoader` 会优先用宿主里的同名类（parent-first），所以两边包名、类名、方法签名必须完全一致。**不要改包名，不要加/删接口方法。** 宿主侧给接口新增成员时必须带默认实现（`get() = ...` 或默认方法体）并同步契约副本，否则旧插件运行时会抛 `AbstractMethodError`。
 > 仓库里的 `testplugin/src/main/kotlin/io/github/aixtin/nyrallite/kernel/` 就是一份可直接抄的副本。
 
 ### 2.2 `build.gradle.kts`
@@ -104,7 +104,7 @@ dependencies {
 }
 
 // 入口声明写在 src/main/assets/plugin-entry.txt，AGP 会在签名前把它打进 APK。
-// 不要用 zip 往已签名 APK 里追加文件：那会破坏 v2/v3 签名，宿主会报"无法解析 APK 签名"。
+// 不要用 zip 往已签名 APK 里追加文件：那会破坏 v2/v3 签名，宿主哈希校验不过会拒绝加载。
 ```
 
 `src/main/assets/plugin-entry.txt`（冒号后一个空格）：
@@ -167,10 +167,10 @@ class NowPlugin : Plugin {
 adb push build/outputs/apk/debug/now-plugin-debug.apk /sdcard/Download/
 ```
 
-然后：App →「插件」→ 顶部「导入 APK」→ 选择文件 →（陌生签名会弹指纹）→ 信任并安装。
+然后：App →「插件」→ 顶部「导入 APK」→ 选择文件 →（未信任的插件会弹确认，展示包名、版本、证书指纹与文件哈希）→ 信任并安装。
 安装成功后插件列表出现记录，默认启用。
 
-> 与宿主用同一个 `~/.android/debug.keystore` 签名时会自动信任，不弹窗。
+> 仅 debug 构建的宿主对与宿主同签名的插件免弹窗；release 一律弹窗。信任绑定插件 id 与文件哈希，插件每次更新（哈希变化）都会重新弹窗确认。
 
 ### 2.6 验证
 
@@ -477,10 +477,10 @@ ctx.effect {
 | 现象 | 原因 / 处理 |
 |---|---|
 | 导入提示"不是有效的插件 APK" | APK 小于 1KB、或读不到签名 |
-| 导入提示"签名未被信任或入口类未找到" | 先看 logcat `NyralDexLoader` 的 `Caused by`：① `NoClassDefFoundError: kotlin.*` 说明宿主 release 包把标准库裁掉了（宿主已 `keep kotlin.**`，旧版本会出）；② `entry class instantiate failed` 多为插件复制的契约与宿主版本不一致；③ 都没有则是 `assets/plugin-entry.txt` 缺失或入口类名拼错 |
+| 导入提示"APK 未受信任或入口类未找到" | 先看 logcat `NyralDexLoader` 的 `Caused by`：① `NoClassDefFoundError: kotlin.*` 说明宿主 release 包把标准库裁掉了（宿主已 `keep kotlin.**`，旧版本会出）；② `entry class instantiate failed` 多为插件复制的契约与宿主版本不一致；③ 都没有则是 `assets/plugin-entry.txt` 缺失或入口类名拼错 |
 | 导入提示"入口类未找到" | `assets/plugin-entry.txt` 缺失或 `Plugin-Entry:` 拼错（旧版兼容 `META-INF/MANIFEST.MF`），或入口类不在 APK 里 |
 | 导入提示"install() 抛异常" | 插件 `install()` 内部报错，logcat 有堆栈；修复后重新导入即可 |
-| 弹"未知签名的插件" | 签名与宿主不同；核对指纹后信任，或改用同一签名。注意正式版宿主用发行私钥，debug 签的插件第一次导入必然弹窗，确认信任即可 |
+| 弹"未信任的插件" | 该插件（按 id + 文件哈希）尚未信任；核对弹窗里的包名、版本、证书指纹与文件哈希后信任即可。插件更新后哈希变化会再次弹窗；debug 宿主对与宿主同签名的插件免弹窗，release 一律弹窗 |
 | 插件装了但工具没出现 | 没 `provide(ToolSource::class, ...)`；或 `list()` 抛异常（看 logcat）；或工具被同名工具覆盖 |
 | 调用时报 `NoSuchMethodError` / `AbstractMethodError` | 插件里复制的契约与宿主版本不一致（宿主升级过接口） |
 | 调用时报 `ClassNotFoundException` | 插件里引用了宿主没有的类；把依赖打进 APK，或改用宿主自带能力 |

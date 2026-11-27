@@ -32,13 +32,15 @@ internal class PolicyRules(
     fun decide(tool: String): PolicyVerdict = when {
         mode == SecurityMode.OFF -> PolicyVerdict.Allow
         tool in deny -> PolicyVerdict.Deny("工具 [$tool] 在禁止名单中")
-        tool in allow || tool in DEFAULT_ALLOW -> PolicyVerdict.Allow
+        tool in allow -> PolicyVerdict.Allow
         mode == SecurityMode.STRICT -> PolicyVerdict.Deny("工具 [$tool] 未在白名单中")
+        tool in DEFAULT_ALLOW -> PolicyVerdict.Allow
         else -> PolicyVerdict.Confirm
     }
 
     companion object {
-        /** 预置白名单：只读自有数据的工具，新会话首次调用也不弹确认；用户显式禁止仍优先。 */
+        /** 预置白名单：只读自有数据的工具，仅 auto 档免确认；
+         *  严格档按字面白名单判定，不含默认项。用户显式禁止仍优先。 */
         val DEFAULT_ALLOW: Set<String> = setOf("memory_search", "history_search")
 
         fun from(config: PluginConfig): PolicyRules = PolicyRules(

@@ -11,8 +11,10 @@ package io.github.aixtin.nyrallite.contract
  */
 interface ToolSource {
 
-    /** 来源标识：门禁判定与审计日志按此归属（内置来源用 builtin: 前缀）。 */
-    val sourceId: String
+    /** 来源标识：门禁判定与审计日志按此归属（内置来源用 builtin: 前缀）。
+     *  默认按类名生成。给默认实现是刻意的：接口加新成员必须向下兼容，
+     *  否则按旧契约编译的插件运行时直接 AbstractMethodError。 */
+    val sourceId: String get() = "plugin:${javaClass.name}"
 
     /** 这个来源当前可声明的工具清单。 */
     suspend fun list(): List<ToolSpec>
