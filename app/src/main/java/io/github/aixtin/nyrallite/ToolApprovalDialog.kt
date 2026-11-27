@@ -4,6 +4,7 @@ import android.app.Activity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aixtin.nyrallite.contract.ApprovalDecision
 import io.github.aixtin.nyrallite.contract.ToolApproval
+import org.json.JSONObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -47,14 +48,18 @@ class ToolApprovalDialog : ToolApproval {
             }
 
             val source = sourceLabel(pluginId)
-            val args = arguments.take(300)
-            val message = if (args.isBlank() || args == "{}") {
-                activity.getString(R.string.approval_source, source)
-            } else {
-                activity.getString(R.string.approval_source_args, source, args)
+            val known = toolInfo[tool]
+            val title = activity.getString(R.string.approval_title, known?.first ?: tool)
+            val message = buildString {
+                append(activity.getString(R.string.approval_tool_source, tool, source))
+                known?.let { append('\n').append(it.second) }
+                formatArgs(arguments)?.let {
+                    append("\n\n").append(activity.getString(R.string.approval_args_header))
+                        .append('\n').append(it)
+                }
             }
             val dialog = MaterialAlertDialogBuilder(activity)
-                .setTitle(activity.getString(R.string.approval_title, tool))
+                .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(R.string.approval_allow_once) { _, _ -> settle(ApprovalDecision.ALLOW_ONCE) }
                 .setNeutralButton(R.string.approval_allow_session) { _, _ -> settle(ApprovalDecision.ALLOW_SESSION) }
@@ -83,6 +88,36 @@ class ToolApprovalDialog : ToolApproval {
             "builtin:history" -> "历史检索"
             "mcp-client" -> "MCP 扩展"
             else -> id
+        }
+
+        /** 工具名转用户可读名称与一句说明；未收录的工具（如 MCP 扩展）原样展示名称。 */
+        val toolInfo: Map<String, Pair<String, String>> = mapOf(
+            "get_location" to Pair("获取位置", "获取你当前的地理位置（经纬度）。"),
+            "read_clipboard" to Pair("读取剪贴板", "读取你手机剪贴板里的文本。剪贴板里可能有你复制过的密码、验证码等敏感内容，确认没有再允许。"),
+            "write_clipboard" to Pair("写入剪贴板", "把一段文字写进你的剪贴板，之后你可以在任何 App 里粘贴。"),
+            "send_notification" to Pair("发送通知", "以本 App 的名义发一条系统通知，会出现在通知栏。"),
+            "dial_phone" to Pair("拨打电话", "打开系统拨号界面并填好号码，不会自动拨出，需要你自己按拨打。"),
+            "open_browser" to Pair("打开网页", "调起浏览器打开一个网址。"),
+            "share_text" to Pair("分享文字", "弹出系统分享面板，把一段文字分享到微信、QQ 等其他 App。"),
+            "start_foreground_task" to Pair("启动后台任务", "启动一个带常驻通知的后台任务，可按设定间隔反复发通知提醒你。"),
+            "stop_foreground_task" to Pair("停止后台任务", "停止一个正在运行的后台提醒任务。"),
+            "remember" to Pair("写入记忆", "把一条信息存进你的长期记忆。"),
+            "memory_search" to Pair("查询记忆", "检索你的长期记忆。"),
+            "forget" to Pair("删除记忆", "按编号删除一条长期记忆。"),
+            "history_search" to Pair("检索历史", "搜索你和助手的过往对话记录。"),
+        )
+
+        /** 参数 JSON 转可读行；解析失败回退原文截断。 */
+        fun formatArgs(arguments: String): String? {
+            val trimmed = arguments.trim()
+            if (trimmed.isEmpty() || trimmed == "{}") return null
+            val parsed = runCatching { JSONObject(trimmed) }.getOrNull()
+                ?: return arguments.take(300)
+            if (parsed.length() == 0) return null
+            return parsed.keys().asSequence().joinToString("\n") { key ->
+                val value = parsed.opt(key)?.toString() ?: ""
+                if (value.length > 100) "$key：${value.take(100)}…" else "$key：$value"
+            }
         }
     }
 }
