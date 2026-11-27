@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 门禁档位下拉弹层：白底圆角卡，与卡片设计语言统一 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/card_surface" />
+    <corners android:radius="14dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#DCE0E6" />
+    <padding
+        android:bottom="8dp"
+        android:left="6dp"
+        android:right="6dp"
+        android:top="8dp" />
+</shape>
