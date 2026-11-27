@@ -1,9 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?><!-- 分区卡片：白底 + 细描边，与主页气泡区分 -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="#FFFFFF" />
-    <corners android:radius="16dp" />
-    <stroke
-        android:width="1dp"
-        android:color="@color/divider" />
-</shape>
+<?xml version="1.0" encoding="utf-8"?><!-- 分区卡片：内嵌感——上缘暗线背光、下缘亮线受光、卡面略深于画布 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 上内阴影：比卡面深一档，从顶部露出 1dp -->
+    <item android:bottom="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#DCE0E6" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+    <!-- 下内高光：比画布亮一档，从底部露出 1dp -->
+    <item android:top="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FAFBFC" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+    <!-- 主卡面：略深于画布 #F1F2F4，上下各收 1dp 露出边缘线 -->
+    <item android:top="1dp" android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#EDEFF3" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+</layer-list>

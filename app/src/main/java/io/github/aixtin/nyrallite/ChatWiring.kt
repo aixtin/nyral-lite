@@ -46,6 +46,10 @@ internal class ChatWiring(
     private var memoryExtractor: MemoryExtractor? = null
     private var summarizer: SessionSummarizer? = null
 
+    /** 空会话状态：人设头像 + 欢迎语，消息列表驱动可见性。 */
+    lateinit var emptyState: EmptyState
+        private set
+
     private val hub = activity.kernel.services
     private lateinit var history: HistorySwitcher
 
@@ -75,6 +79,7 @@ internal class ChatWiring(
         // 不用 stackFromEnd: 短会话贴底会导致展开思考时整块内容只能上移(向上展开)。
         rv.layoutManager = LinearLayoutManager(activity)
         rv.adapter = adapter
+        emptyState = EmptyState.attach(activity, adapter) { messages.isNotEmpty() }
 
         sessions = SessionController(
             hub.get<SessionStore>(),
@@ -83,6 +88,7 @@ internal class ChatWiring(
             messages,
             onSessionEnding = { id, msgs -> memoryExtractor?.maybeExtract(id, msgs) },
         )
+        emptyState.refresh(sessions.currentPersonaId)
         controller = ChatController(
             activity = activity,
             rv = rv,

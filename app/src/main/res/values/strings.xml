@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Nyral Lite</string>
     <string name="hint_input">输入消息…</string>
+    <string name="empty_hint">打个招呼，开始聊聊吧</string>
     <string name="send">发送</string>
     <string name="settings">设置</string>
     <string name="stop">停止</string>

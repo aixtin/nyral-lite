@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity() {
         attachments = ImageAttachments(this, attachmentStores) { composerAttachments.render(it) }
         wiring = ChatWiring(this, rv, input, btnSend, messages, attachments::take) {
             header.refresh(wiring.sessions.currentPersonaId)
+            wiring.emptyState.refresh(wiring.sessions.currentPersonaId)
         }
         wiring.start()
         wiring.controller.onToolsWarning = mcpWarning::show
