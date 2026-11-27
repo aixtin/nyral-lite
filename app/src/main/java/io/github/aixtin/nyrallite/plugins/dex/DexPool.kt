@@ -19,6 +19,10 @@ internal class DexPool(
     val pluginsDir: File
         get() = File(appContext.filesDir, PLUGINS_DIR).apply { mkdirs() }
 
+    /** 插件 APK 的规范落盘路径；id 非法时返回 null，路径拼接统一收口在这里。 */
+    fun apkFileOf(pluginId: String): File? =
+        if (validId(pluginId)) File(pluginsDir, "$pluginId.apk") else null
+
     private val dexOptDir: File
         get() = File(appContext.codeCacheDir, DEX_OPT_DIR).apply { mkdirs() }
 
@@ -88,7 +92,10 @@ internal class DexPool(
     /** 把暂存 APK 归一到 {id}.apk 并重新加载；不直接改已加载 dex 的路径。 */
     fun commit(apkFile: File, pluginId: String): LoadedPlugin? {
         if (trackers.containsKey(pluginId)) unload(pluginId, deleteApk = true)
-        val target = File(pluginsDir, "$pluginId.apk")
+        val target = apkFileOf(pluginId) ?: run {
+            Log.e(TAG, "commit: 非法插件 id: $pluginId")
+            return null
+        }
         val moved = runCatching {
             target.delete()
             apkFile.renameTo(target) || apkFile.copyTo(target, overwrite = true).let {
@@ -113,7 +120,7 @@ internal class DexPool(
         val tracker = trackers.remove(pluginId)
         if (tracker != null) DexSupport.closeAll(tracker.loader)
         if (deleteApk) {
-            (tracker?.apkFile ?: File(pluginsDir, "$pluginId.apk")).delete()
+            (tracker?.apkFile ?: apkFileOf(pluginId))?.delete()
         }
     }
 
@@ -123,10 +130,15 @@ internal class DexPool(
 
     private data class ClassLoaderTracker(val loader: DexClassLoader, val apkFile: File)
 
-    private companion object {
-        const val TAG = "NyralDexLoader"
-        const val PLUGINS_DIR = "plugins"
-        const val DEX_OPT_DIR = "dex_opt"
-        const val MIN_APK_SIZE = 1024L
+    companion object {
+        private const val TAG = "NyralDexLoader"
+        private const val PLUGINS_DIR = "plugins"
+        private const val DEX_OPT_DIR = "dex_opt"
+        private const val MIN_APK_SIZE = 1024L
+
+        /** 插件 ID 白名单：防 manifest.id 拼路径越出插件目录。 */
+        val ID_PATTERN = Regex("^[a-z0-9][a-z0-9._-]{0,63}$")
+
+        fun validId(id: String): Boolean = ID_PATTERN.matches(id)
     }
 }

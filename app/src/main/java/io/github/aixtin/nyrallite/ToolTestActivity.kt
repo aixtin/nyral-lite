@@ -18,6 +18,8 @@ class ToolTestActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tool_test)
+        // 门禁确认弹窗挂在登记的前台 Activity 上；不登记会弹到栈底窗口，被本页挡住
+        (application as App).approval.attach(this)
         val root = findViewById<View>(R.id.root)
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -30,6 +32,7 @@ class ToolTestActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         scope.cancel()
+        (application as App).approval.detach(this)
         super.onDestroy()
     }
 }

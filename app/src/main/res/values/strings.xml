@@ -176,7 +176,7 @@
     <string name="approval_tool_source">%1$s · 来源：%2$s</string>
     <string name="approval_args_header">参数</string>
     <string name="approval_allow_once">允许一次</string>
-    <string name="approval_allow_session">本次会话允许</string>
+    <string name="approval_allow_session">重启前不再询问</string>
     <string name="approval_deny">拒绝</string>
 
     <string name="upd_title">发现新版本 %1$s</string>

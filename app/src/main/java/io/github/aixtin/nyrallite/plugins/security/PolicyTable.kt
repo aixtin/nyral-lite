@@ -1,5 +1,6 @@
 package io.github.aixtin.nyrallite.plugins.security
 
+import android.os.Looper
 import io.github.aixtin.nyrallite.contract.ApprovalDecision
 import io.github.aixtin.nyrallite.contract.SecurityMode
 import io.github.aixtin.nyrallite.contract.ToolApproval
@@ -52,6 +53,12 @@ internal class PolicyTable(
 
     /** auto 档下未预授权的工具：挂起等用户选择，超时按拒绝处理。 */
     private fun confirm(request: ToolCallRequest): Outcome {
+        // GateBus.check 是同步钩子，实现方必须自己找对线程：确认弹窗要靠主线程
+        // Looper 才能响应用户点击，在主线程阻塞等待会直接 ANR。这里的异常会被
+        // DefaultGateBus fail-closed 捕获转 Block，不会崩进程。
+        check(Looper.myLooper() != Looper.getMainLooper()) {
+            "PolicyTable.confirm 被主线程调用：工具调用必须运行在 IO 线程"
+        }
         val key = "${request.pluginId}/${request.tool}"
         if (key in sessionAllowed) return Outcome(GateResult.Allow, "本次会话已允许")
         val decision = runBlocking {

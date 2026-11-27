@@ -107,7 +107,7 @@ class DexPluginLoader(
         }
 
         val realId = first.plugin.manifest.id
-        if (!validId(realId)) {
+        if (!DexPool.validId(realId)) {
             Log.e(TAG, "installStaged: 非法插件 id: $realId")
             pool.unload(first.pluginId, deleteApk = false)
             staged.file.delete()
@@ -123,8 +123,8 @@ class DexPluginLoader(
 
     /** 冷启动恢复：从已持久化的 {pluginId}.apk 重新加载。 */
     fun loadFromFile(pluginId: String): LoadedPlugin? {
-        if (!validId(pluginId)) return null
-        val file = File(pool.pluginsDir, "$pluginId.apk")
+        if (!DexPool.validId(pluginId)) return null
+        val file = pool.apkFileOf(pluginId) ?: return null
         if (!file.exists()) return null
         val loaded = pool.load(file) ?: return null
         if (loaded.plugin.manifest.id != pluginId) {
@@ -147,11 +147,6 @@ class DexPluginLoader(
 
     private companion object {
         const val TAG = "NyralDexLoader"
-
-        /** 插件 ID 白名单：防 manifest.id 拼路径越出插件目录。 */
-        val ID_PATTERN = Regex("^[a-z0-9][a-z0-9._-]{0,63}$")
-
-        fun validId(id: String): Boolean = ID_PATTERN.matches(id)
         const val MIN_APK_SIZE = 1024L
     }
 }

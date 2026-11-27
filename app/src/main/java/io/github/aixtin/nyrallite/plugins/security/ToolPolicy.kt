@@ -21,7 +21,7 @@ internal object SecurityConfigKeys {
 /**
  * 从插件配置解析出的门禁规则。
  *
- * 工具名用英文逗号或换行分隔，禁止名单优先级最高。
+ * 工具名用英文逗号或换行分隔，禁止名单优先级最高；预置白名单（[PolicyRules.DEFAULT_ALLOW]）视同白名单成员。
  */
 internal class PolicyRules(
     val mode: SecurityMode,
@@ -32,12 +32,15 @@ internal class PolicyRules(
     fun decide(tool: String): PolicyVerdict = when {
         mode == SecurityMode.OFF -> PolicyVerdict.Allow
         tool in deny -> PolicyVerdict.Deny("工具 [$tool] 在禁止名单中")
-        tool in allow -> PolicyVerdict.Allow
+        tool in allow || tool in DEFAULT_ALLOW -> PolicyVerdict.Allow
         mode == SecurityMode.STRICT -> PolicyVerdict.Deny("工具 [$tool] 未在白名单中")
         else -> PolicyVerdict.Confirm
     }
 
     companion object {
+        /** 预置白名单：只读自有数据的工具，新会话首次调用也不弹确认；用户显式禁止仍优先。 */
+        val DEFAULT_ALLOW: Set<String> = setOf("memory_search", "history_search")
+
         fun from(config: PluginConfig): PolicyRules = PolicyRules(
             mode = SecurityMode.of(
                 config.getString(SecurityConfigKeys.MODE, SecurityConfigKeys.DEFAULT_MODE),

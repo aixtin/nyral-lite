@@ -2,6 +2,8 @@ package io.github.aixtin.nyrallite.contract
 
 import io.github.aixtin.nyrallite.kernel.GateBus
 import io.github.aixtin.nyrallite.kernel.GateResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 多来源聚合工具注册表：抹平 MCP 远程工具、系统原生工具、以后 WebView 工具的差异，
@@ -48,18 +50,20 @@ class MultiToolRegistry(
 
     override fun lastErrors(): List<String> = synchronized(errors) { errors.toList() }
 
-    override suspend fun call(name: String, argumentsJson: String): ToolResult {
+    override suspend fun call(name: String, argumentsJson: String): ToolResult = withContext(Dispatchers.IO) {
+        // 门禁确认可能阻塞等用户（PolicyTable.confirm），必须离开调用方线程：
+        // 调用方常在主线程（如工具自测页），阻塞主线程会 ANR。
         for (source in sources()) {
             // 门禁在统一分发口拦截：所有来源（内置 + 远程）的调用都先过闸
             if (!source.owns(name)) continue
             when (val gate = gates.check(ToolCallRequest(source.sourceId, name, argumentsJson))) {
-                is GateResult.Block -> return ToolResult("安全策略拦截：${gate.reason}", true)
+                is GateResult.Block -> return@withContext ToolResult("安全策略拦截：${gate.reason}", true)
                 GateResult.Allow -> Unit
             }
             val result = source.callOrNull(name, argumentsJson)
-            if (result != null) return result
+            if (result != null) return@withContext result
         }
-        return ToolResult(
+        ToolResult(
             content = "工具未找到: $name，当前来源中没有名为该的工具",
             isError = true,
         )
