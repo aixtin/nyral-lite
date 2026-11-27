@@ -53,7 +53,7 @@ class SharedPrefsApiConfigStore(context: Context) : ApiConfigStore {
 
     override fun isConfigured(): Boolean = load().apiKey.isNotBlank()
 
-    private companion object {
+    internal companion object {
         const val NAME = "nyral_lite_prefs"
         const val K_URL = "base_url"
         const val K_KEY = "api_key"

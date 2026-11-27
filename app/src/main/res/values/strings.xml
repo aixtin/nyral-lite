@@ -179,7 +179,8 @@
     <string name="plugin_perm_clipboard">剪贴板</string>
 
     <string name="approval_title">允许执行 %1$s？</string>
-    <string name="approval_message">来源：%1$s\n参数：%2$s</string>
+    <string name="approval_source">来源：%1$s</string>
+    <string name="approval_source_args">来源：%1$s\n参数：%2$s</string>
     <string name="approval_allow_once">允许一次</string>
     <string name="approval_allow_session">本次会话允许</string>
     <string name="approval_deny">拒绝</string>

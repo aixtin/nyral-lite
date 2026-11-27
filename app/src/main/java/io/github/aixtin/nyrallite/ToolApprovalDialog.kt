@@ -46,9 +46,16 @@ class ToolApprovalDialog : ToolApproval {
                 if (cont.isActive) cont.resume(decision)
             }
 
+            val source = sourceLabel(pluginId)
+            val args = arguments.take(300)
+            val message = if (args.isBlank() || args == "{}") {
+                activity.getString(R.string.approval_source, source)
+            } else {
+                activity.getString(R.string.approval_source_args, source, args)
+            }
             val dialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(activity.getString(R.string.approval_title, tool))
-                .setMessage(activity.getString(R.string.approval_message, pluginId, arguments.take(300)))
+                .setMessage(message)
                 .setPositiveButton(R.string.approval_allow_once) { _, _ -> settle(ApprovalDecision.ALLOW_ONCE) }
                 .setNeutralButton(R.string.approval_allow_session) { _, _ -> settle(ApprovalDecision.ALLOW_SESSION) }
                 .setNegativeButton(R.string.approval_deny) { _, _ -> settle(ApprovalDecision.DENY) }
@@ -64,6 +71,18 @@ class ToolApprovalDialog : ToolApproval {
                 return@suspendCancellableCoroutine
             }
             cont.invokeOnCancellation { activity.runOnUiThread { dialog.dismiss() } }
+        }
+    }
+
+    private companion object {
+        /** 来源标识转用户可读名称；未知来源原样展示。 */
+        fun sourceLabel(id: String): String = when (id) {
+            "builtin:system-tools" -> "系统工具"
+            "builtin:device-tools" -> "设备能力"
+            "builtin:memory" -> "记忆"
+            "builtin:history" -> "历史检索"
+            "mcp-client" -> "MCP 扩展"
+            else -> id
         }
     }
 }

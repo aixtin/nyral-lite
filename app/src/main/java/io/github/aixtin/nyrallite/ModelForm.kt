@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.github.aixtin.nyrallite.contract.ApiConfig
 import io.github.aixtin.nyrallite.contract.ApiConfigStore
+import io.github.aixtin.nyrallite.plugins.storageprefs.SharedPrefsApiConfigStore
 import io.github.aixtin.nyrallite.kernel.get
 
 /** 模型接入表单：地址、密钥、模型名与上下文预算。 */
@@ -18,9 +19,10 @@ internal class ModelForm(private val activity: AppCompatActivity) {
 
     fun load() {
         val config = store.load()
-        inUrl.setText(config.baseUrl)
+        // 未配置时显示占位提示而不是示例值，用户不用手动删默认值
+        inUrl.setText(config.baseUrl.takeUnless { it == SharedPrefsApiConfigStore.DEF_URL }.orEmpty())
         inKey.setText(config.apiKey)
-        inModel.setText(config.model)
+        inModel.setText(config.model.takeUnless { it == SharedPrefsApiConfigStore.DEF_MODEL }.orEmpty())
         // 0 表示默认值，界面上留空比显示 0 更直白
         inContext.setText(config.contextTokens.takeIf { it > 0 }?.toString().orEmpty())
     }
@@ -44,9 +46,9 @@ internal class ModelForm(private val activity: AppCompatActivity) {
         }
         store.save(
             ApiConfig(
-                baseUrl = inUrl.text.toString(),
+                baseUrl = inUrl.text.toString().trim().ifBlank { SharedPrefsApiConfigStore.DEF_URL },
                 apiKey = key,
-                model = inModel.text.toString(),
+                model = inModel.text.toString().trim().ifBlank { SharedPrefsApiConfigStore.DEF_MODEL },
                 contextTokens = contextTokens,
             ),
         )
