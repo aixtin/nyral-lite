@@ -63,7 +63,6 @@ class ChatController(
     /** 工具来源告警（多半是 MCP 连不上）：null 表示已恢复，由界面注入。 */
     var onToolsWarning: ((String?) -> Unit)? = null
 
-    /** 用户手指/惯性滚动进行中：暂停流式渲染。 */
     /** 本次滚动是否由用户拖动引起；只有这种停稳才重新判定跟随。 */
     private var sawDrag = false
 

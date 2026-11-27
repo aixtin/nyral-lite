@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         composerAttachments = ComposerAttachments(
-            scroll = findViewById(R.id.attach_scroll),
+            scroll = attachStrip,
             strip = findViewById(R.id.attach_strip),
             open = { ref -> attachmentStores.open(ref) },
             onRemove = attachments::removeAt,

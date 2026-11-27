@@ -1,6 +1,7 @@
 package io.github.aixtin.nyrallite.kernel
 
 import android.content.Context
+import android.util.Log
 
 /**
  * 插件内核：只做五件事——注册/排序、服务容器、事件总线、可拦截总线、配置分层。
@@ -71,7 +72,7 @@ class Kernel(
             owned[id] = services
             return true
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("NyralKernel", "install plugin $id failed", e)
             // 安装失败同样要收回已注册的服务，避免残留不可用实例
             services.release()
             return false
@@ -102,7 +103,7 @@ class Kernel(
             try {
                 handle.dispose()
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.w("NyralKernel", "dispose plugin failed", e)
             }
         }
         handles.clear()

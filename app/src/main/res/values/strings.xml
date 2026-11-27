@@ -4,7 +4,6 @@
     <string name="hint_input">输入消息…</string>
     <string name="empty_hint">打个招呼，开始聊聊吧</string>
     <string name="send">发送</string>
-    <string name="settings">设置</string>
     <string name="stop">停止</string>
     <string name="scroll_to_bottom">回到底部</string>
 
@@ -68,15 +67,12 @@
     <string name="bar_plugins">插件</string>
     <string name="bar_history">历史</string>
     <string name="bar_voice">语音</string>
-    <string name="voice_recording">录音中…</string>
-    <string name="voice_processing">识别中…</string>
     <string name="voice_unavailable">语音识别暂不可用</string>
     <string name="voice_no_match">没听清，请再试一次</string>
     <string name="voice_timeout">录音超时，请再说一次</string>
     <string name="voice_busy">语音正忙，请稍后再试</string>
     <string name="voice_permission">请授予麦克风权限以使用语音输入</string>
     <string name="voice_network">语音识别需要网络连接</string>
-    <string name="voice_permission_rationale">Nyral Lite 需要使用麦克风进行语音输入</string>
 
     <string name="history_title">历史会话</string>
     <string name="history_new">新建会话</string>
@@ -95,7 +91,6 @@
     <string name="context_trimmed">为控制长度，本轮已精简部分历史上下文</string>
     <string name="error_with_retry">出错：%1$s\n\n点击重试</string>
 
-    <string name="attach_add">＋</string>
     <string name="attach_add_desc">添加图片</string>
     <string name="attach_limit">最多添加 4 张图片</string>
     <string name="attach_failed">图片处理失败：%1$s</string>
@@ -115,7 +110,6 @@
     <string name="persona_title">人设</string>
     <string name="persona_import">导入</string>
     <string name="persona_new">新建</string>
-    <string name="persona_new_name">未命名人设</string>
     <string name="persona_hint">短人设注入指令、性格、场景；长人设注入描述、示例、互动要求。已有消息的会话切换时默认新建，避免人设混用。</string>
     <string name="persona_disable">不使用人设</string>
     <string name="persona_empty">还没有人设\n点右上角新建，或导入 SillyTavern v2 JSON 角色卡</string>
@@ -181,7 +175,6 @@
     <string name="approval_title">允许「%1$s」？</string>
     <string name="approval_tool_source">%1$s · 来源：%2$s</string>
     <string name="approval_args_header">参数</string>
-    <string name="approval_source">来源：%1$s</string>
     <string name="approval_allow_once">允许一次</string>
     <string name="approval_allow_session">本次会话允许</string>
     <string name="approval_deny">拒绝</string>

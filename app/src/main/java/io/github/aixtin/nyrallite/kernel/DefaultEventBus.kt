@@ -1,5 +1,6 @@
 package io.github.aixtin.nyrallite.kernel
 
+import android.util.Log
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.reflect.KClass
 
@@ -19,7 +20,7 @@ internal class DefaultEventBus : EventBus {
             try {
                 sub.listener(event)
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.w("NyralEventBus", "event listener failed", e)
             }
         }
     }

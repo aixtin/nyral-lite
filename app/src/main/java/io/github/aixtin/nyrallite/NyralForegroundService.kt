@@ -4,9 +4,11 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.util.Log
 import io.github.aixtin.nyrallite.contract.ForegroundContract
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -62,19 +64,24 @@ class NyralForegroundService : Service() {
         val task = dispatcher.consumeTask(taskId) ?: return
 
         notifications.update(title, body)
-        val job = scope.launch {
+        // 先登记再启动：任务可能在协程首次调度前就跑完，登记必须先行
+        val job = Job()
+        synchronized(runningTasks) {
+            runningTasks[taskId] = RunningTask(task, job)
+        }
+        scope.launch(job) {
             runCatching { task.run(emptyMap()) }
-                .onFailure { it.printStackTrace() }
+                .onFailure { Log.w(TAG, "task $taskId failed", it) }
             // 无论成功失败都通知 dispatcher 清 runningIds
             dispatcher.notifyTaskDone(taskId)
-            synchronized(runningTasks) { runningTasks.remove(taskId) }
-            if (runningTasks.isEmpty()) {
+            synchronized(runningTasks) {
+                // 只清掉自己那条，避免误删后继同名任务
+                if (runningTasks[taskId]?.job === job) runningTasks.remove(taskId)
+            }
+            if (synchronized(runningTasks) { runningTasks.isEmpty() }) {
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
-        }
-        synchronized(runningTasks) {
-            runningTasks[taskId] = RunningTask(task, job)
         }
     }
 
@@ -108,7 +115,8 @@ class NyralForegroundService : Service() {
         super.onDestroy()
     }
 
-    companion object {        const val ACTION_START = "io.github.aixtin.nyrallite.action.START_TASK"
+    companion object {
+        const val ACTION_START = "io.github.aixtin.nyrallite.action.START_TASK"
         const val ACTION_STOP = "io.github.aixtin.nyrallite.action.STOP_TASK"
         const val ACTION_STOP_ALL = "io.github.aixtin.nyrallite.action.STOP_ALL_TASKS"
 
@@ -145,3 +153,5 @@ private data class RunningTask(
     val task: ForegroundContract.Task,
     val job: kotlinx.coroutines.Job,
 )
+
+private const val TAG = "NyralForeground"
