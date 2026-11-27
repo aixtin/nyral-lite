@@ -1,7 +1,7 @@
 package io.github.aixtin.nyrallite
 
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 /**
  * http:// 端点明文警告：密钥与对话内容不加密过网，保存前让用户知情。
@@ -12,7 +12,7 @@ internal fun AppCompatActivity.confirmCleartext(url: String, onConfirm: () -> Un
         onConfirm()
         return
     }
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
         .setTitle(R.string.cleartext_warning_title)
         .setMessage(R.string.cleartext_warning_message)
         .setNegativeButton(R.string.cleartext_warning_cancel, null)
