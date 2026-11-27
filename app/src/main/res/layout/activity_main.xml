@@ -213,14 +213,12 @@
                 android:paddingStart="6dp"
                 android:paddingEnd="6dp">
 
-                <TextView
+                <ImageView
                     android:id="@+id/bar_attach"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:gravity="center"
-                    android:text="@string/attach_add"
-                    android:textSize="20sp"
-                    android:textColor="@color/bar_action_text_muted"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_add"
                     android:clickable="true"
                     android:focusable="true"
                     android:contentDescription="@string/attach_add_desc"
@@ -239,17 +237,15 @@
                     android:inputType="textMultiLine|textCapSentences"
                     android:maxLines="5" />
 
-                <TextView
+                <ImageView
                     android:id="@+id/bar_voice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="30dp"
-                    android:paddingHorizontal="8dp"
-                    android:gravity="center"
-                    android:text="@string/bar_voice"
-                    android:textSize="12sp"
-                    android:textColor="@color/bar_action_text_muted"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_mic"
                     android:clickable="true"
                     android:focusable="true"
+                    android:contentDescription="@string/bar_voice"
                     android:background="?attr/selectableItemBackgroundBorderless" />
             </LinearLayout>
 

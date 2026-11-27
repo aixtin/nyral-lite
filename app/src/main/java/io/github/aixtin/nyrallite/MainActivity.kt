@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity() {
         )
         input.doAfterTextChanged { refreshSendState() }
         refreshSendState()
-        findViewById<TextView>(R.id.bar_attach).setOnClickListener { attachments.pick() }
+        findViewById<View>(R.id.bar_attach).setOnClickListener { attachments.pick() }
 
         scrollButton = ScrollToBottomButton(
             rv = rv,

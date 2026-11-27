@@ -2,7 +2,7 @@ package io.github.aixtin.nyrallite
 
 import android.Manifest
 import android.widget.EditText
-import android.widget.TextView
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,7 +16,7 @@ import io.github.aixtin.nyrallite.plugins.voicestt.SpeechRecognizerFactory
 internal class VoiceInput(
     private val activity: ComponentActivity,
     private val input: EditText,
-    private val button: TextView,
+    private val button: ImageView,
     factory: SpeechRecognizerFactory?,
 ) {
     private val listener = Listener()
@@ -59,13 +59,11 @@ internal class VoiceInput(
     }
 
     private fun render(state: SpeechRecognizer.State) {
-        button.setText(
-            when (state) {
-                SpeechRecognizer.State.IDLE -> R.string.bar_voice
-                SpeechRecognizer.State.LISTENING -> R.string.voice_recording
-                SpeechRecognizer.State.PROCESSING -> R.string.voice_processing
-            },
-        )
+        when (state) {
+            SpeechRecognizer.State.IDLE -> button.setImageResource(R.drawable.ic_mic)
+            SpeechRecognizer.State.LISTENING -> button.setImageResource(R.drawable.ic_stop)
+            SpeechRecognizer.State.PROCESSING -> button.setImageResource(R.drawable.ic_mic)
+        }
     }
 
     private fun toast(res: Int) = Toast.makeText(activity, res, Toast.LENGTH_SHORT).show()
