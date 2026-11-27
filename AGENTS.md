@@ -15,7 +15,7 @@ adb -s <device-ip>:5555 shell am start -n io.github.aixtin.nyrallite/.MainActivi
 
 - 启动一律用 `am start`，禁止用 `monkey`（monkey 会打开系统自动旋转设置）。
 - 连接手机只做只读或安装操作（install / logcat / dumpsys / settings get），禁止写系统设置。
-- 每次改动必须编译并装机验证，不允许只改不测。
+- 每次改动必须编译并装机验证，不允许只改不测。回归范围见 docs/regression-checklist.md。
 
 ## 架构纪律（硬规则）
 
