@@ -1,6 +1,8 @@
 package io.github.aixtin.nyrallite
 
 import android.graphics.BitmapFactory
+import android.view.animation.DecelerateInterpolator
+import androidx.core.content.ContextCompat
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -23,9 +25,18 @@ internal class EmptyState(
 ) {
     private val store = activity.kernel.services.getOrNull<PersonaStore>()
 
-    /** 消息数变化时调用：空会话显示，有消息隐藏。 */
+    /** 消息数变化时调用：空会话显示（带浮现动效），有消息隐藏。 */
     fun sync() {
-        block.visibility = if (hasMessages()) View.GONE else View.VISIBLE
+        val show = !hasMessages()
+        val wasVisible = block.visibility == View.VISIBLE
+        block.visibility = if (show) View.VISIBLE else View.GONE
+        if (show && !wasVisible) {
+            block.alpha = 0f
+            block.translationY = 24f
+            block.animate().alpha(1f).translationY(0f).setDuration(280L)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
     }
 
     /** 人设变化时调用：刷新头像与名字，可见性不变。 */
@@ -33,10 +44,14 @@ internal class EmptyState(
         val card = personaId?.let { store?.get(it) }
         if (card == null) {
             title.text = activity.getString(R.string.app_name)
+            title.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 20f)
+            title.setTextColor(ContextCompat.getColor(activity, R.color.ai_text))
             avatar.setImageResource(R.drawable.ic_launcher)
             return
         }
         title.text = card.name
+        title.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 22f)
+        title.setTextColor(ContextCompat.getColor(activity, R.color.brand))
         val file = PersonaAvatar.file(activity, card.id)
         if (file.isFile) {
             // 原图较大，空状态显示 72dp，降采样即可

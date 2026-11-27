@@ -43,7 +43,7 @@ internal class PersonaHeader(
         name.setTextColor(
             ContextCompat.getColor(
                 activity,
-                if (bitmap == null) R.color.ai_text else R.color.bar_action_text_muted,
+                if (bitmap == null) R.color.ai_text else R.color.brand,
             ),
         )
     }
