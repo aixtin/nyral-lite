@@ -40,8 +40,8 @@
 
             <ImageView
                 android:id="@+id/header_avatar"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:background="@drawable/bg_avatar"
                 android:clipToOutline="true"
                 android:scaleType="centerCrop"
@@ -103,15 +103,22 @@
             android:paddingHorizontal="32dp"
             android:visibility="gone">
 
-            <ImageView
-                android:id="@+id/empty_avatar"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:background="@drawable/bg_avatar"
-                android:clipToOutline="true"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/app_name"
-                android:src="@drawable/ic_launcher" />
+            <FrameLayout
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:background="@drawable/bg_avatar_glow">
+
+                <ImageView
+                    android:id="@+id/empty_avatar"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_avatar"
+                    android:clipToOutline="true"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/ic_launcher" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/empty_title"

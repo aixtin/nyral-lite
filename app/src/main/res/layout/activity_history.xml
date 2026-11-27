@@ -41,10 +41,11 @@
             android:gravity="center"
             android:text="@string/history_new"
             android:textSize="12sp"
-            android:textColor="@color/bar_action_text"
+            android:textStyle="bold"
+            android:textColor="@color/user_text"
             android:clickable="true"
             android:focusable="true"
-            android:background="@drawable/bg_bar_item" />
+            android:background="@drawable/bg_cta_small" />
     </FrameLayout>
 
     <View
