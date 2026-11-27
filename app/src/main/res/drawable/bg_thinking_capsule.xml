@@ -2,9 +2,9 @@
 <!-- 思考区胶囊容器：圆角卡片 + 极浅灰底 + 1px 细描边，与气泡正文做视觉分割 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#F4F4F4" />
+    <solid android:color="@color/bg" />
     <stroke
         android:width="0.5dp"
-        android:color="#E6E6E6" />
+        android:color="@color/divider" />
     <corners android:radius="12dp" />
 </shape>

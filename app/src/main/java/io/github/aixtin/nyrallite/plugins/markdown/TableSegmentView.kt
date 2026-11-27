@@ -46,7 +46,7 @@ internal object TableSegmentView {
         val pad = Dimens.dp(context, 9)
         val padV = Dimens.dp(context, 6)
         return TextView(context).apply {
-            setTextColor(0xFF1A1A1A.toInt())
+            setTextColor(context.getColor(R.color.ai_text))
             textSize = 14f
             setPadding(pad, padV, pad, padV)
             setBackgroundResource(R.drawable.bg_cell)
@@ -57,7 +57,7 @@ internal object TableSegmentView {
         val pad = Dimens.dp(context, 9)
         val padV = Dimens.dp(context, 6)
         return TextView(context).apply {
-            setTextColor(0xFF999999.toInt())
+            setTextColor(context.getColor(R.color.text_hint))
             textSize = 12f
             setPadding(pad, padV, pad, padV)
         }

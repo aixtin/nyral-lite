@@ -183,7 +183,7 @@
                     android:background="@null"
                     android:paddingVertical="10dp"
                     android:hint="@string/hint_input"
-                    android:textColorHint="#9AA0A6"
+                    android:textColorHint="@color/text_hint"
                     android:textColor="@color/ai_text"
                     android:inputType="textMultiLine|textCapSentences"
                     android:maxLines="5" />
@@ -287,18 +287,6 @@
                 android:layout_height="1dp"
                 android:layout_weight="1" />
 
-            <TextView
-                android:id="@+id/bar_gate"
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:paddingHorizontal="12dp"
-                android:gravity="center"
-                android:text="@string/bar_gate"
-                android:textSize="12sp"
-                android:textColor="@color/nav_muted"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="@drawable/bg_bar_item" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -14,4 +14,6 @@
     <color name="card_surface">#FFFFFF</color>
     <color name="nav_muted">#8A9099</color>
     <color name="skeleton">#ECEFF2</color>
+    <color name="text_secondary">#666666</color>
+    <color name="text_hint">#9AA0A6</color>
 </resources>

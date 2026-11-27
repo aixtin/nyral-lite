@@ -44,7 +44,7 @@
                 android:gravity="end"
                 android:maxLines="1"
                 android:minWidth="40dp"
-                android:textColor="#A0A0A0"
+                android:textColor="@color/text_hint"
                 android:textSize="11sp"
                 android:visibility="gone" />
 
@@ -75,7 +75,7 @@
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="8dp"
                 android:textSize="13sp"
-                android:textColor="#666666"
+                android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="2dp" />
         </io.github.aixtin.nyrallite.MaxHeightScrollView>
 

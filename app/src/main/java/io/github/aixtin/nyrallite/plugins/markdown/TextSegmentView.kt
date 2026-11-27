@@ -1,6 +1,7 @@
 package io.github.aixtin.nyrallite.plugins.markdown
 
 import android.content.Context
+import io.github.aixtin.nyrallite.R
 import android.view.View
 import android.widget.TextView
 
@@ -8,7 +9,7 @@ import android.widget.TextView
 internal object TextSegmentView {
 
     fun create(context: Context, text: String): TextView = TextView(context).apply {
-        setTextColor(0xFF1A1A1A.toInt())
+        setTextColor(context.getColor(R.color.ai_text))
         textSize = 15f
         setLineSpacing(Dimens.dp(context, 3).toFloat(), 1f)
         MarkdownEngine.render(this, text)

@@ -1,6 +1,7 @@
 package io.github.aixtin.nyrallite.plugins.markdown
 
 import android.content.Context
+import io.github.aixtin.nyrallite.R
 import android.widget.HorizontalScrollView
 import android.widget.TableLayout
 import android.widget.TableRow
@@ -88,7 +89,7 @@ internal object TableFiller {
                 tv.tag = hintTag
                 // 可能复用到原来的数据 cell，统一重置成灰色小字样式
                 tv.background = null
-                tv.setTextColor(0xFF999999.toInt())
+                tv.setTextColor(tv.context.getColor(R.color.text_hint))
                 tv.textSize = 12f
             }
             rowIndex++

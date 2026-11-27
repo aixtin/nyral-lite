@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     private val messages = mutableListOf<Message>()
     private lateinit var wiring: ChatWiring
     private lateinit var scrollButton: ScrollToBottomButton
-    private lateinit var gateSwitch: GateModeSwitch
     private lateinit var header: PersonaHeader
     private lateinit var mcpWarning: McpWarningBar
     private lateinit var input: EditText
@@ -78,15 +77,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.top_bar).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
-        // 门禁：单击循环切换档位并轻提示；长按进入门禁设置编辑白名单/禁止名单
-        val gateItem = findViewById<TextView>(R.id.bar_gate)
-        gateSwitch = GateModeSwitch(this, gateItem, kernel.services.get<SecuritySettingsStore>())
-        gateSwitch.refresh()
-        gateItem.setOnClickListener { gateSwitch.toggle() }
-        gateItem.setOnLongClickListener {
-            startActivity(Intent(this, SecurityConfigActivity::class.java))
-            true
-        }
+        // 门禁档位改在 设置 → 安全门禁 里调整，底排只留看得懂的入口
         findViewById<TextView>(R.id.toolbar_plugins).setOnClickListener {
             startActivity(Intent(this, PluginsActivity::class.java))
         }
@@ -128,8 +119,6 @@ class MainActivity : AppCompatActivity() {
         // 历史页可能删掉了当前会话：回到主界面时切到空会话
         wiring.resetIfMissing()
         header.refresh(wiring.sessions.currentPersonaId)
-        // 配置页可能改过档位，回来时刷新工具条
-        gateSwitch.refresh()
         if (!kernel.services.get<ApiConfigStore>().isConfigured()) {
             startActivity(Intent(this, ModelConfigActivity::class.java))
         }

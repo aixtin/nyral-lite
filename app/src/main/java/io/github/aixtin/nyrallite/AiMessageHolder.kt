@@ -28,7 +28,7 @@ internal class AiMessageHolder(v: View) : RecyclerView.ViewHolder(v) {
         label.setFactory {
             TextView(label.context).apply {
                 textSize = 12f
-                setTextColor(0xFFA0A0A0.toInt())
+                setTextColor(context.getColor(R.color.text_hint))
                 maxLines = 1
                 ellipsize = TextUtils.TruncateAt.END
             }

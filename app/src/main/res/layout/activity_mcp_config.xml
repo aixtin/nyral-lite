@@ -79,7 +79,7 @@
                     android:inputType="textUri"
                     android:padding="12dp"
                     android:textColor="@color/ai_text"
-                    android:textColorHint="#9AA0A6" />
+                    android:textColorHint="@color/text_hint" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -99,7 +99,7 @@
                     android:inputType="text"
                     android:padding="12dp"
                     android:textColor="@color/ai_text"
-                    android:textColorHint="#9AA0A6" />
+                    android:textColorHint="@color/text_hint" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -119,7 +119,7 @@
                     android:inputType="textPassword"
                     android:padding="12dp"
                     android:textColor="@color/ai_text"
-                    android:textColorHint="#9AA0A6" />
+                    android:textColorHint="@color/text_hint" />
 
                 <Button
                     android:id="@+id/btn_test_mcp"
