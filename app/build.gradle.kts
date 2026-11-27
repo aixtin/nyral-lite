@@ -22,7 +22,7 @@ android {
         unitTests.isReturnDefaultValues = true
     }
     namespace = "io.github.aixtin.nyrallite"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "io.github.aixtin.nyrallite"
@@ -67,14 +67,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
         // 接口默认实现编译成 JVM default 方法：旧插件未实现新成员也能继承，避免破坏性变更
-        freeCompilerArgs += "-Xjvm-default=all"
+        freeCompilerArgs.add("-Xjvm-default=all")
     }
 }
 
 dependencies {
+    // WASM 插件运行时: 纯 Kotlin 沙箱, 能力网关模式见 plugins/wasm (设计稿 2026-11-28)
+    implementation("io.github.charlietap.chasm:chasm:2.5.0")
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
