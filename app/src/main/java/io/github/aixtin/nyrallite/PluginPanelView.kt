@@ -104,11 +104,7 @@ internal class PluginPanelView(
         Spinner(activity).apply {
             background = ContextCompat.getDrawable(activity, R.drawable.bg_field)
             setPadding(dp(12), dp(8), dp(12), dp(8))
-            adapter = ArrayAdapter(
-                activity,
-                android.R.layout.simple_spinner_item,
-                field.options.map { it.label },
-            ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+            SpinnerStyle.install(this, field.options.map { it.label })
             val stored = readValue(field.key, field.default)
             setSelection(field.options.indexOfFirst { it.value == stored }.coerceAtLeast(0))
             readers.add(field.key to {

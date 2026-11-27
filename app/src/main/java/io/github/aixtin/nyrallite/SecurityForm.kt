@@ -1,14 +1,8 @@
 package io.github.aixtin.nyrallite
 
-import android.graphics.Typeface
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Spinner
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import io.github.aixtin.nyrallite.contract.SecurityMode
 import io.github.aixtin.nyrallite.contract.SecuritySettings
 import io.github.aixtin.nyrallite.contract.SecuritySettingsStore
@@ -29,30 +23,7 @@ internal class SecurityForm(private val activity: AppCompatActivity) {
         val security = store.load()
         inAllow.setText(security.allowTools)
         inDeny.setText(security.denyTools)
-        val labels = modes.map { activity.getString(modeLabel(it)) }
-        spMode.adapter = object : ArrayAdapter<String>(
-            activity,
-            R.layout.spinner_mode_item,
-            labels,
-        ) {
-            override fun getDropDownView(
-                position: Int,
-                convertView: View?,
-                parent: ViewGroup,
-            ): View = super.getDropDownView(position, convertView, parent).also { row ->
-                val selected = position == spMode.selectedItemPosition
-                (row as TextView).apply {
-                    setTextColor(
-                        ContextCompat.getColor(
-                            activity,
-                            if (selected) R.color.brand else R.color.ai_text,
-                        ),
-                    )
-                    setTypeface(typeface, if (selected) Typeface.BOLD else Typeface.NORMAL)
-                }
-            }
-        }.also { it.setDropDownViewResource(R.layout.spinner_mode_dropdown_item) }
-        spMode.setPopupBackgroundDrawable(ContextCompat.getDrawable(activity, R.drawable.bg_spinner_popup))
+        SpinnerStyle.install(spMode, modes.map { activity.getString(modeLabel(it)) })
         spMode.setSelection(modes.indexOf(security.mode).coerceAtLeast(0))
     }
 
