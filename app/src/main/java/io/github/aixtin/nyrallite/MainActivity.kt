@@ -88,14 +88,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SecurityConfigActivity::class.java))
             true
         }
-        findViewById<TextView>(R.id.toolbar_plugins).setOnClickListener {
+        findViewById<View>(R.id.toolbar_plugins).setOnClickListener {
             startActivity(Intent(this, PluginsActivity::class.java))
         }
-        findViewById<TextView>(R.id.toolbar_history).setOnClickListener { wiring.openHistory() }
-        findViewById<TextView>(R.id.toolbar_memory).setOnClickListener {
+        findViewById<View>(R.id.toolbar_history).setOnClickListener { wiring.openHistory() }
+        findViewById<View>(R.id.toolbar_memory).setOnClickListener {
             startActivity(Intent(this, MemoryActivity::class.java))
         }
-        findViewById<TextView>(R.id.toolbar_persona).setOnClickListener {
+        findViewById<View>(R.id.toolbar_persona).setOnClickListener {
             wiring.persona.launch(wiring.sessions.currentPersonaId)
         }
         voice = VoiceInput(

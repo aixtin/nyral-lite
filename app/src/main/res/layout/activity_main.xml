@@ -271,60 +271,121 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/toolbar_plugins"
                 android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginEnd="4dp"
-                android:paddingHorizontal="8dp"
-                android:gravity="center"
-                android:text="@string/bar_plugins"
-                android:textSize="12sp"
-                android:textColor="@color/nav_muted"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:background="?attr/selectableItemBackgroundBorderless">
 
-            <TextView
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_bar_plugins" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="@string/bar_plugins"
+                    android:textSize="10sp"
+                    android:textColor="@color/nav_muted" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/toolbar_history"
                 android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginEnd="4dp"
-                android:paddingHorizontal="8dp"
-                android:gravity="center"
-                android:text="@string/bar_history"
-                android:textSize="12sp"
-                android:textColor="@color/nav_muted"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:background="?attr/selectableItemBackgroundBorderless">
 
-            <TextView
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_bar_history" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="@string/bar_history"
+                    android:textSize="10sp"
+                    android:textColor="@color/nav_muted" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/toolbar_memory"
                 android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:layout_marginEnd="4dp"
-                android:paddingHorizontal="8dp"
-                android:gravity="center"
-                android:text="@string/bar_memory"
-                android:textSize="12sp"
-                android:textColor="@color/nav_muted"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:background="?attr/selectableItemBackgroundBorderless">
 
-            <TextView
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_bar_memory" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="@string/bar_memory"
+                    android:textSize="10sp"
+                    android:textColor="@color/nav_muted" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/toolbar_persona"
                 android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:paddingHorizontal="8dp"
-                android:gravity="center"
-                android:text="@string/bar_persona"
-                android:textSize="12sp"
-                android:textColor="@color/nav_muted"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:background="?attr/selectableItemBackgroundBorderless">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_bar_persona" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="@string/bar_persona"
+                    android:textSize="10sp"
+                    android:textColor="@color/nav_muted" />
+            </LinearLayout>
 
             <Space
                 android:layout_width="0dp"
