@@ -18,6 +18,9 @@ configurations.all {
 }
 
 android {
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
     namespace = "io.github.aixtin.nyrallite"
     compileSdk = 36
 
