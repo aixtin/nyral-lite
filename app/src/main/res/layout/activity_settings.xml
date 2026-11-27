@@ -69,6 +69,7 @@
                 android:background="@drawable/bg_card"
                 android:clickable="true"
                 android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -98,6 +99,7 @@
                 android:background="@drawable/bg_card"
                 android:clickable="true"
                 android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
@@ -127,6 +129,7 @@
                 android:background="@drawable/bg_card"
                 android:clickable="true"
                 android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:orientation="vertical"
                 android:padding="16dp">
 
