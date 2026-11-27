@@ -8,6 +8,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import io.github.aixtin.nyrallite.contract.ApiConfigStore
 import io.github.aixtin.nyrallite.contract.AttachmentStores
@@ -48,6 +49,15 @@ class MainActivity : AppCompatActivity() {
         KeyboardInsets(root, rv).install()
         input = findViewById(R.id.input)
         val btnSend = findViewById<Button>(R.id.btn_send)
+        val attachStrip = findViewById<View>(R.id.attach_scroll)
+        // 空输入且无待发附件时置灰发送键；输出中按钮是“停止”，保持可点
+        fun refreshSendState() {
+            val idle = btnSend.text.toString() == getString(R.string.send)
+            val canSend = input.text?.toString()?.isNotBlank() == true ||
+                attachStrip.visibility == View.VISIBLE
+            btnSend.isEnabled = !idle || canSend
+            btnSend.alpha = if (btnSend.isEnabled) 1f else 0.4f
+        }
         header = PersonaHeader.attach(this)
         mcpWarning = McpWarningBar.attach(this)
 
@@ -99,7 +109,10 @@ class MainActivity : AppCompatActivity() {
             strip = findViewById(R.id.attach_strip),
             open = { ref -> attachmentStores.open(ref) },
             onRemove = attachments::removeAt,
+            onChanged = { refreshSendState() },
         )
+        input.doAfterTextChanged { refreshSendState() }
+        refreshSendState()
         findViewById<TextView>(R.id.bar_attach).setOnClickListener { attachments.pick() }
 
         scrollButton = ScrollToBottomButton(

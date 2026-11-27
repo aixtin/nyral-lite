@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?><!-- 输入胶囊：白底全圆角，配 elevation 悬浮 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/card_surface" />
+    <corners android:radius="24dp" />
+</shape>

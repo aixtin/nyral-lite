@@ -18,10 +18,12 @@ internal class ComposerAttachments(
     private val strip: LinearLayout,
     private val open: (AttachmentRef) -> ByteArray?,
     private val onRemove: (Int) -> Unit,
+    private val onChanged: () -> Unit = {},
 ) {
     fun render(refs: List<AttachmentRef>) {
         strip.removeAllViews()
         scroll.visibility = if (refs.isEmpty()) View.GONE else View.VISIBLE
+        onChanged()
         if (refs.isEmpty()) return
 
         val density = strip.resources.displayMetrics.density

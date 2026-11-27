@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -73,22 +74,32 @@
         android:textSize="12sp"
         android:visibility="gone" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:background="@color/divider" />
-
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="6dp">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/bg_canvas_card"
+            android:elevation="2dp"
+            android:clipToOutline="true"
             android:clipToPadding="false"
             android:paddingVertical="12dp" />
+
+        <!-- 会话加载骨架：恢复完成后隐藏；elevation 高于消息卡 -->
+        <include
+            android:id="@+id/chat_skeleton"
+            layout="@layout/item_chat_skeleton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:elevation="3dp"
+            android:visibility="gone" />
 
         <!-- 回到底部：不常驻，用户上滑离开底部时才出现，停手一会儿自动消失 -->
         <ImageView
@@ -106,19 +117,13 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:background="@color/divider" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="10dp"
         android:paddingTop="8dp"
-        android:paddingBottom="4dp"
-        android:background="@color/bg">
+        android:paddingBottom="4dp">
 
         <!-- 待发送图片：横向缩略图条，为空时整条隐藏 -->
         <HorizontalScrollView
@@ -152,7 +157,8 @@
                 android:layout_marginStart="8dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:background="@drawable/bg_ai"
+                android:background="@drawable/bg_input_pill"
+                android:elevation="4dp"
                 android:paddingStart="6dp"
                 android:paddingEnd="6dp">
 
@@ -198,14 +204,17 @@
 
             <Button
                 android:id="@+id/btn_send"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
-                android:minWidth="64dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:text="@string/send"
+                android:textSize="13sp"
                 android:textColor="@color/user_text"
-                android:backgroundTint="@color/brand" />
+                android:backgroundTint="@color/brand"
+                app:cornerRadius="22dp" />
         </LinearLayout>
 
         <!-- 底部辅助行：左侧导航（轻量文字），右侧门禁状态（胶囊，带状态文案） -->
@@ -227,7 +236,7 @@
                 android:gravity="center"
                 android:text="@string/bar_plugins"
                 android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
+                android:textColor="@color/nav_muted"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -241,7 +250,7 @@
                 android:gravity="center"
                 android:text="@string/bar_history"
                 android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
+                android:textColor="@color/nav_muted"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -255,7 +264,7 @@
                 android:gravity="center"
                 android:text="@string/bar_memory"
                 android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
+                android:textColor="@color/nav_muted"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -268,7 +277,7 @@
                 android:gravity="center"
                 android:text="@string/bar_persona"
                 android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
+                android:textColor="@color/nav_muted"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -286,7 +295,7 @@
                 android:gravity="center"
                 android:text="@string/bar_gate"
                 android:textSize="12sp"
-                android:textColor="@color/bar_action_text"
+                android:textColor="@color/nav_muted"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="@drawable/bg_bar_item" />

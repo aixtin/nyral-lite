@@ -2,6 +2,7 @@ package io.github.aixtin.nyrallite
 
 import android.content.Context
 import android.widget.Button
+import android.view.View
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
@@ -110,7 +111,13 @@ internal class ChatWiring(
             onChanged = { sessions.scheduleSave() },
         )
         // 启动恢复上次所在会话与未发送草稿；没有历史时创建空会话
-        sessions.restore(controller::replaceSession)
+        // 会话恢复：后台读取，读到前显示骨架占位
+        val skeleton = activity.findViewById<View>(R.id.chat_skeleton)
+        skeleton.visibility = View.VISIBLE
+        sessions.restore { loaded ->
+            skeleton.visibility = View.GONE
+            controller.replaceSession(loaded)
+        }
         loadDraft()
         input.doAfterTextChanged { sessions.scheduleDraftSave(it?.toString().orEmpty()) }
         history = HistorySwitcher(activity, sessions, controller::replaceSession, ::loadDraft)
