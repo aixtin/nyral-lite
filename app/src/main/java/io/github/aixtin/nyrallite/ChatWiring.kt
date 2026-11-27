@@ -78,6 +78,7 @@ internal class ChatWiring(
         )
         // 不用 stackFromEnd: 短会话贴底会导致展开思考时整块内容只能上移(向上展开)。
         rv.layoutManager = LinearLayoutManager(activity)
+        rv.itemAnimator = EntranceItemAnimator()
         rv.adapter = adapter
         emptyState = EmptyState.attach(activity, adapter) { messages.isNotEmpty() }
 
