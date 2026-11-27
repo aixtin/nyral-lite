@@ -26,7 +26,7 @@ import io.github.aixtin.nyrallite.plugins.storageprefs.SharedPrefsConfigBackend
 import io.github.aixtin.nyrallite.plugins.system.SystemToolsPlugin
 import io.github.aixtin.nyrallite.plugins.dex.DexPluginLoader
 import io.github.aixtin.nyrallite.plugins.dex.ExternalPluginStore
-import io.github.aixtin.nyrallite.plugins.dex.TrustedSignerStore
+import io.github.aixtin.nyrallite.plugins.dex.TrustedApkStore
 import io.github.aixtin.nyrallite.plugins.voicestt.VoiceSttPlugin
 
 /**
@@ -45,12 +45,12 @@ class App : Application() {
     lateinit var pluginManifests: List<PluginManifest>
         private set
 
-    /** 用户显式信任的第三方插件签名。 */
-    val trustedSigners: TrustedSignerStore by lazy { TrustedSignerStore(this) }
+    /** 用户显式信任的插件 APK 文件哈希。 */
+    val trustedApks: TrustedApkStore by lazy { TrustedApkStore(this) }
 
-    /** Dex 动态插件加载器：宿主单例，首次使用时初始化并信任宿主签名 + 已信任的第三方签名。 */
+    /** Dex 动态插件加载器：宿主单例，信任对象是插件 APK 文件本身。 */
     val dexLoader: DexPluginLoader by lazy {
-        DexPluginLoader(this, trustedSigners).trustSelfSigned()
+        DexPluginLoader(this, trustedApks)
     }
 
     /** 外部插件清单持久化：记录哪些插件已安装、是否启用。 */

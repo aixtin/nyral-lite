@@ -9,48 +9,53 @@ import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.zip.ZipFile
 
-/** APK 签名校验：宿主自身签名 + 用户已信任的第三方签名。 */
+/**
+ * APK 信任校验：信任对象是整个 APK 文件的 SHA-256，而不是签名者证书。
+ *
+ * 证书指纹只回答「谁签的」，不回答「内容有没有被改过」——解析签名块拿证书
+ * 并不校验签名与内容的对应关系，改过内容的 APK 可以原样保留旧证书。
+ * 文件哈希才是完整性证明：任何字节改动都会改变哈希。代价是插件每次更新
+ * 都要重新确认一次，这是有意为之。
+ *
+ * 证书指纹仍会提取，但只用于信任弹窗里给用户人工核对来源。
+ */
 internal class ApkSignatures(
     private val appContext: Context,
-    private val signerStore: TrustedSignerStore,
+    private val store: TrustedApkStore,
 ) {
-    private val trustedCerts = LinkedHashSet<String>()
+    private val trustedHashes = LinkedHashSet<String>()
 
-    /** 把宿主自身签名 + 用户已信任的第三方签名加入白名单。 */
-    fun trustSelfSigned() {
-        val pm = appContext.packageManager
-        val pi = try {
-            @Suppress("DEPRECATION")
-            pm.getPackageInfo(
-                appContext.packageName,
-                PackageManager.GET_SIGNING_CERTIFICATES or PackageManager.GET_SIGNATURES,
-            )
-        } catch (t: Throwable) {
-            Log.e(TAG, "trustSelfSigned getPackageInfo failed", t)
-            null
-        } ?: run {
-            Log.w(TAG, "trustSelfSigned: getPackageInfo returned null")
-            return
+    /** APK 文件整体 SHA-256 是否在信任名单内。 */
+    fun isTrusted(fileSha256: String): Boolean = fileSha256 in trustedHashes
+
+    /** 用户确认信任某个插件 APK：立即生效并持久化。 */
+    fun trust(fileSha256: String) {
+        trustedHashes.add(fileSha256)
+        store.add(fileSha256)
+    }
+
+    /** 启动时把持久化的信任记录装回内存。 */
+    fun restore() {
+        trustedHashes.addAll(store.all())
+        if (trustedHashes.isEmpty()) Log.i(TAG, "restore: 尚无受信任的插件 APK")
+    }
+
+    /** 整个 APK 文件的 SHA-256：信任判定与每次加载前的完整性校验都用它。 */
+    fun fileSha256Of(apkFile: File): String? = runCatching {
+        val md = MessageDigest.getInstance("SHA-256")
+        apkFile.inputStream().use { input ->
+            val buf = ByteArray(BUF_SIZE)
+            while (true) {
+                val n = input.read(buf)
+                if (n < 0) break
+                md.update(buf, 0, n)
+            }
         }
-        pi.signingInfo?.apkContentsSigners?.forEach { sha256(it.toByteArray())?.let(trustedCerts::add) }
-        @Suppress("DEPRECATION")
-        pi.signatures?.forEach { sha256(it.toByteArray())?.let(trustedCerts::add) }
-        // 用户此前明确信任过的第三方签名
-        trustedCerts.addAll(signerStore.all())
-        if (trustedCerts.isEmpty()) Log.w(TAG, "trustSelfSigned: no certs collected")
-    }
+        md.digest().joinToString("") { "%02x".format(it) }
+    }.getOrNull()
 
-    /** 签名（证书 SHA-256）是否在白名单内。 */
-    fun isTrusted(sha256: String): Boolean = sha256 in trustedCerts
-
-    /** 用户确认信任某个第三方签名：立即生效并持久化。 */
-    fun trust(sha256: String) {
-        trustedCerts.add(sha256)
-        signerStore.add(sha256)
-    }
-
-    /** 优先用 Android API 解析 APK Signature Block（v2/v3，API 24+）；fallback v1 签名文件。 */
-    fun sha256OfApk(apkFile: File): String? {
+    /** 签名者证书的 SHA-256（v2/v3 优先，fallback v1）；只用于弹窗展示，不做信任判定。 */
+    fun certFingerprintOf(apkFile: File): String? {
         try {
             @Suppress("DEPRECATION")
             val pi = appContext.packageManager.getPackageArchiveInfo(
@@ -79,8 +84,7 @@ internal class ApkSignatures(
                     val cert = zip.getInputStream(e).use { input ->
                         cf.generateCertificates(input).firstOrNull() as? X509Certificate
                     } ?: return null
-                    val md = MessageDigest.getInstance("SHA-256")
-                    return md.digest(cert.encoded).joinToString("") { "%02x".format(it) }
+                    return sha256(cert.encoded)
                 }
             }
         } catch (_: Throwable) {
@@ -95,5 +99,6 @@ internal class ApkSignatures(
 
     private companion object {
         const val TAG = "NyralDexLoader"
+        const val BUF_SIZE = 64 * 1024
     }
 }

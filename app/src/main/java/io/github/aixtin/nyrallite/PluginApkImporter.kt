@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 
 /**
  * 外部 Dex 插件的 APK 导入：选择文件 → 暂存 → 信任确认 → 装入内核并记录。
- * 未受信任的签名先弹窗确认，确认前不执行插件代码。
+ * 未信任的 APK 先弹窗确认（信任对象是文件哈希），确认前不执行插件代码。
  */
 internal class PluginApkImporter(
     private val activity: AppCompatActivity,
@@ -33,7 +33,7 @@ internal class PluginApkImporter(
                 onStatus("导入失败：不是有效的插件 APK", true)
                 return@launch
             }
-            if (app.dexLoader.isTrusted(staged.sha256)) finishImport(staged)
+            if (app.dexLoader.isTrusted(staged.fileSha256)) finishImport(staged)
             else confirmThirdPartySigner(staged)
         }
     }
@@ -46,7 +46,7 @@ internal class PluginApkImporter(
     private fun finishImport(staged: StagedApk) {
         val loaded = app.dexLoader.installStaged(staged)
         if (loaded == null) {
-            onStatus("导入失败：签名未被信任或入口类未找到", true)
+            onStatus("导入失败：APK 未受信任或入口类未找到", true)
             return
         }
         // 同 id 视为升级：先卸旧插件（回收它注册的服务与 effect），再装新版本
@@ -69,22 +69,24 @@ internal class PluginApkImporter(
         onInstalled()
     }
 
-    /** 未知签名：展示包信息与指纹，用户确认后才信任并加载。 */
+    /** 未信任的 APK：展示包信息、证书指纹与文件哈希，用户确认后才信任并加载。 */
     private fun confirmThirdPartySigner(staged: StagedApk) {
         MaterialAlertDialogBuilder(activity)
-            .setTitle("未知签名的插件")
+            .setTitle("未信任的插件")
             .setMessage(
                 buildString {
                     appendLine("包名：${staged.packageName ?: "未知"}")
                     appendLine("版本：${staged.versionName ?: "未知"}")
                     appendLine("签名指纹：")
-                    appendLine(formatFingerprint(staged.sha256))
+                    appendLine(staged.certFingerprint?.let(::formatFingerprint) ?: "未知")
+                    appendLine("文件哈希：")
+                    appendLine(formatFingerprint(staged.fileSha256))
                     appendLine()
-                    append("信任后该插件的代码将以主应用的身份运行，请确认来源可靠。")
+                    append("信任后该插件的代码将以主应用的身份运行，请确认来源可靠。插件更新后需重新确认。")
                 },
             )
             .setPositiveButton("信任并安装") { _, _ ->
-                app.dexLoader.trust(staged.sha256)
+                app.dexLoader.trust(staged.fileSha256)
                 finishImport(staged)
             }
             .setNegativeButton("取消") { _, _ -> staged.file.delete() }

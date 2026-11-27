@@ -46,13 +46,14 @@ internal class DexPool(
             return null
         }
 
-        val sha = signatures.sha256OfApk(apkFile)
+        // 每次加载前重验文件哈希：落盘后的 APK 被改动过就拒绝加载
+        val sha = signatures.fileSha256Of(apkFile)
         if (sha == null) {
-            Log.e(TAG, "load: 无法解析 APK 签名")
+            Log.e(TAG, "load: 无法计算 APK 哈希")
             return null
         }
         if (!signatures.isTrusted(sha)) {
-            Log.e(TAG, "load: 签名未受信任 $sha")
+            Log.e(TAG, "load: APK 哈希未受信任 $sha")
             return null
         }
 

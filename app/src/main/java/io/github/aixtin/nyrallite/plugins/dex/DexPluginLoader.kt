@@ -19,41 +19,44 @@ data class LoadedPlugin(
  */
 data class StagedApk(
     val file: File,
-    val sha256: String,
+    /** 整个 APK 文件的 SHA-256：信任判定对象。 */
+    val fileSha256: String,
+    /** 签名者证书指纹：只用于弹窗展示。 */
+    val certFingerprint: String?,
     val packageName: String?,
     val versionName: String?,
 )
 
 /**
- * Dex 插件加载器：签名白名单 + 导入流程；ClassLoader 池在 [DexPool]。
+ * Dex 插件加载器：APK 文件哈希信任 + 导入流程；ClassLoader 池在 [DexPool]。
  *
  * 核心流程：
- *   1. [trustSelfSigned] — 宿主签名 + 用户已信任的第三方签名进白名单
- *   2. [stage] — 导入第一步：复制到 filesDir/plugins/ → 读签名与包信息，不执行代码
- *   3. [installStaged] — 导入第二步：验签 → 读 Plugin-Entry → 加载 → 按 id 归一化
- *   4. [loadFromFile] — 冷启动恢复：从 {pluginId}.apk 重新加载
- *   5. [unload] — Kernel.uninstall 先清 Service/Tool 注册，再释放 ClassLoader
+ *   1. [stage] — 导入第一步：复制到 filesDir/plugins/ → 算文件哈希与包信息，不执行代码
+ *   2. [installStaged] — 导入第二步：验哈希 → 读 Plugin-Entry → 加载 → 按 id 归一化
+ *   3. [loadFromFile] — 冷启动恢复：从 {pluginId}.apk 重新加载（每次加载前重验哈希）
+ *   4. [unload] — Kernel.uninstall 先清 Service/Tool 注册，再释放 ClassLoader
+ *
+ * 信任对象是整个 APK 文件的 SHA-256：更新即新文件，需重新确认。
  *
  * Manifest 约定：插件 APK 的 META-INF/MANIFEST.MF 必须有一行：
  *   Plugin-Entry: com.example.myplugin.MyPlugin
  */
 class DexPluginLoader(
     private val appContext: Context,
-    signerStore: TrustedSignerStore,
+    store: TrustedApkStore,
 ) {
-    private val signatures = ApkSignatures(appContext, signerStore)
+    private val signatures = ApkSignatures(appContext, store)
     private val pool = DexPool(appContext, signatures)
 
-    fun trustSelfSigned(): DexPluginLoader {
-        signatures.trustSelfSigned()
-        return this
+    init {
+        signatures.restore()
     }
 
-    /** 签名（证书 SHA-256）是否在白名单内。 */
-    fun isTrusted(sha256: String): Boolean = signatures.isTrusted(sha256)
+    /** APK 文件哈希是否在信任名单内。 */
+    fun isTrusted(fileSha256: String): Boolean = signatures.isTrusted(fileSha256)
 
-    /** 用户确认信任某个第三方签名：立即生效并持久化。 */
-    fun trust(sha256: String) = signatures.trust(sha256)
+    /** 用户确认信任某个插件 APK：立即生效并持久化。 */
+    fun trust(fileSha256: String) = signatures.trust(fileSha256)
 
     /**
      * 导入第一步：落盘到临时文件并读取签名/包信息。
@@ -75,12 +78,13 @@ class DexPluginLoader(
             return null
         }
 
-        val sha = signatures.sha256OfApk(pending)
-        if (sha == null) {
-            Log.e(TAG, "stage: 无法解析 APK 签名")
+        val fileSha = signatures.fileSha256Of(pending)
+        if (fileSha == null) {
+            Log.e(TAG, "stage: 无法计算 APK 哈希")
             pending.delete()
             return null
         }
+        val cert = signatures.certFingerprintOf(pending)
         val pi = runCatching {
             @Suppress("DEPRECATION")
             appContext.packageManager.getPackageArchiveInfo(pending.absolutePath, 0)
@@ -88,7 +92,8 @@ class DexPluginLoader(
 
         return StagedApk(
             file = pending,
-            sha256 = sha,
+            fileSha256 = fileSha,
+            certFingerprint = cert,
             packageName = pi?.packageName,
             versionName = pi?.versionName,
         )
@@ -96,8 +101,8 @@ class DexPluginLoader(
 
     /** 导入第二步：签名已受信任后才会被调用。 */
     fun installStaged(staged: StagedApk): LoadedPlugin? {
-        if (!signatures.isTrusted(staged.sha256)) {
-            Log.e(TAG, "installStaged: 签名未受信任 ${staged.sha256}")
+        if (!signatures.isTrusted(staged.fileSha256)) {
+            Log.e(TAG, "installStaged: APK 哈希未受信任 ${staged.fileSha256}")
             staged.file.delete()
             return null
         }
