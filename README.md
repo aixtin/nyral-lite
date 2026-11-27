@@ -1,16 +1,51 @@
 # Nyral Lite
 
+<p align="center">
+  <img src="docs/screenshots/chat-persona.png" width="180" alt="人设对话" />
+  <img src="docs/screenshots/chat-tools.png" width="180" alt="工具调用" />
+  <img src="docs/screenshots/plugins.png" width="180" alt="插件管理" />
+  <img src="docs/screenshots/persona.png" width="180" alt="人设管理" />
+  <img src="docs/screenshots/settings.png" width="180" alt="设置" />
+</p>
+
 一个轻量的 Android LLM 聊天客户端：流式对话、Markdown 与表格渲染、工具调用、人设卡和插件扩展。
+单模块 Kotlin 工程，不依赖私有服务，填入任意兼容 Chat Completions 的服务地址即可使用。
 
 ## 功能
 
-- 流式聊天，思考过程可折叠
-- Markdown、代码块与表格渲染
-- 工具调用：内置系统工具 + 远程 MCP（Streamable HTTP，兼容 SSE 响应）
-- 人设：导入 `chara_card_v2` 角色卡（JSON，或图片内嵌数据的 PNG），支持短/长档与开场白
-- 会话历史、会话摘要与长期记忆
-- 动态插件：外部 Dex APK，可向模型注册自定义工具
-- 安全门禁：工具执行前确认、白名单与审计日志
+### 聊天与渲染
+- 流式输出，思考过程可折叠查看（摘要行 + 全文抽屉）
+- Markdown 单引擎渲染：标题、列表、代码块与表格，流式与收尾走同一解析路径
+- 消息入场动效、空会话欢迎页、输入草稿自动保存
+- 图片附件发送与全屏查看，语音输入（系统语音识别）
+
+### 工具调用
+- 内置系统工具：拨号、打开网页、发送通知、分享文本、前台任务等
+- 会话历史搜索、长期记忆检索作为工具暴露给模型
+- 工具执行卡片展示结果与耗时，失败可一键重试
+- 远程 MCP 服务器（Streamable HTTP，兼容 SSE 响应），支持连接测试
+
+### 人设
+- 导入 `chara_card_v2` 角色卡（JSON，或图片内嵌数据的 PNG）
+- 短人设（指令、性格、场景）与长人设（描述、示例、互动要求）双档
+- 开场白、自定义头像；已有消息的会话切换人设时默认新建会话
+
+### 记忆与历史
+- 会话结束后自动提取长期记忆，带去重与评分
+- 会话历史、全文搜索与自动摘要
+
+### 插件
+- 内置插件随包分发：配置存储、模型接入、Markdown 渲染、安全门禁、语音识别、附件存储
+- 动态插件：导入外部 Dex APK，向模型注册自定义工具，第三方签名导入时弹窗确认
+
+### 安全门禁
+- 三档位：放行 / 自动（高危工具需确认）/ 严格（仅白名单放行）
+- 工具白名单与禁止名单（禁止名单优先）
+- 工具审计日志，可导出排查
+
+### 其他
+- 启动时静默检查 GitHub Release 更新
+- 前台服务保障长任务执行
 
 ## 环境要求
 
@@ -37,6 +72,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 | `docs/plugin-dev.md` | 插件开发指南 |
 | `AGENTS.md` | 本项目的开发约定 |
 
+## 插件开发
+
+插件是一个装进 App 的动态 Dex APK，可以向模型注册工具、调用宿主能力。
+完整的契约说明、最小工程、示例工具与排错表见 [docs/plugin-dev.md](docs/plugin-dev.md)。
+
 ## 版本记录
 
 ### v0.1.0 · 2026-11-27 · versionCode 1
@@ -46,17 +86,12 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - 流式聊天与可折叠思考过程
 - Markdown、代码块与表格渲染
 - 工具调用：内置系统工具 + 远程 MCP
-- 人设卡导入（SillyTavern v2 JSON / PNG）
+- 人设卡导入（chara_card_v2 JSON / PNG）
 - 会话历史、摘要与长期记忆
 - 动态 Dex 插件扩展
 - 三档安全门禁与工具审计日志
 - 启动时静默检查 GitHub Release 更新
 - 动态插件：release 包保留 Kotlin 标准库，debug 构建的插件可直接导入
-
-## 插件开发
-
-插件是一个装进 App 的动态 Dex APK，可以向模型注册工具、调用宿主能力。
-完整的契约说明、最小工程、示例工具与排错表见 [docs/plugin-dev.md](docs/plugin-dev.md)。
 
 ## 许可证
 
