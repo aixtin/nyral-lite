@@ -19,8 +19,8 @@ import org.commonmark.ext.gfm.tables.TableHead
  */
 internal object TableFiller {
 
-    private const val MAX_TABLE_ROWS = 100
-    private const val MAX_TABLE_COLS = 10
+    internal const val MAX_TABLE_ROWS = 100
+    internal const val MAX_TABLE_COLS = 10
 
     /** 流式中最后一行数据行的透明度 */
     private const val DIM_ROW_ALPHA = 0.6f

@@ -51,6 +51,7 @@ object PngCardReader {
             else -> bytes.copyOfRange(keyEnd, end)
         }
         return runCatching {
+            if (body.size > MAX_CARD_BYTES) error("card too large")
             String(Base64.getMimeDecoder().decode(String(body, Charsets.UTF_8)), Charsets.UTF_8)
         }.getOrNull()
     }
@@ -72,6 +73,8 @@ object PngCardReader {
             val n = inflater.inflate(buffer)
             if (n <= 0) break
             out.write(buffer, 0, n)
+            // 解压炸弹防护：几百字节的 zTXt 可解出数 GB，超限直接判无效
+            if (out.size() > MAX_CARD_BYTES) throw IllegalStateException("card too large")
         }
         inflater.end()
         out.toByteArray()
@@ -94,3 +97,6 @@ object PngCardReader {
     )
     private val KEYS = setOf("chara", "ccv3")
 }
+
+/** 角色卡解压/解码总量上限：导入一张异常卡最多处理 4MB，防止 OOM。 */
+private const val MAX_CARD_BYTES = 4_000_000

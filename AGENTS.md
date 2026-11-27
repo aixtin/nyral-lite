@@ -19,10 +19,10 @@ adb -s <device-ip>:5555 shell am start -n io.github.aixtin.nyrallite/.MainActivi
 
 ## 架构纪律（硬规则）
 
-1. **渲染只有一条路**：所有 Markdown 渲染只进 `MarkdownRenderer`（单引擎，流式 = 收尾同一解析路径）。禁止新增第二条渲染路径。
-2. **SSE 解析只在一个文件**：厂商字段兼容全部集中在 `ChatApi.parseDelta`，禁止在 Adapter / Activity 里做厂商判断。
+1. **渲染只有一条路**：所有 Markdown 渲染只进 `plugins/markdown/`（单引擎，流式 = 收尾同一解析路径）。禁止在 UI 层新增第二条渲染路径。
+2. **SSE 解析只在一个目录**：厂商字段兼容全部集中在 `plugins/modelopenai/`（SseLineReader / OpenAiDeltaParser / OpenAiToolCallAccumulator），禁止在 Adapter / Activity 里做厂商判断。
 3. **UI 状态进状态机**：思考区四态（NONE / PENDING / STREAMING / DONE）收敛在 `ChatAdapter` 的 phase 状态机，新增状态先进状态机，禁止散落 if/else。
-4. **表格上限常量联动**：`MarkdownRenderer.MAX_TABLE_ROWS / MAX_TABLE_COLS` 改动必须同步 `ChatApi.SYSTEM_PROMPT` 里的数值。
+4. **表格上限常量联动**：`TableFiller` 的行/列上限改动必须同步 `PromptDefaults.SYSTEM` 里的约束文案数值，有断言测试守护。
 5. **文件行数红线约 400 行**：超出按职责拆（渲染 / 状态 / 动画分离），不按层次拆。
 6. **结构性重构绑定触发条件**：`Message` 改为有序 parts 模型（Thinking/Text/ToolCall）只在引入工具调用或接入交错思考模型时做，不提前。
 

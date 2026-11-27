@@ -58,11 +58,14 @@ class FileSkillScanner(
         }
         if (matched.isEmpty()) return@withContext ""
 
-        val blocks = matched.map { doc ->
-            val content = readContent(doc.path)
-            val body = stripFrontmatter(content)
+        var total = 0
+        val blocks = matched.mapNotNull { doc ->
+            if (total >= MAX_TOTAL_CHARS) return@mapNotNull null
+            val body = stripFrontmatter(readContent(doc.path)).take(MAX_SKILL_CHARS)
+            total += body.length
             "## 已加载 Skill：${doc.name}\n$body"
         }
+        if (blocks.isEmpty()) return@withContext ""
         "\n\n## 技能\n\n${blocks.joinToString("\n\n")}"
     }
 
@@ -144,3 +147,9 @@ class FileSkillScanner(
         return sp.getBoolean(path, true)
     }
 }
+
+/** 单个 Skill 注入上限：防止超大 SKILL.md 顶掉可用上下文。 */
+private const val MAX_SKILL_CHARS = 8_000
+
+/** 全部 Skill 注入总上限。 */
+private const val MAX_TOTAL_CHARS = 32_000
