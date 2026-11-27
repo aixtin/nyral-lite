@@ -148,6 +148,32 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
+            <!-- WASM 插件 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/plugins_section_wasm"
+                android:textColor="@color/ai_text"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:alpha="0.6"
+                android:text="@string/plugins_wasm_hint"
+                android:textColor="@color/ai_text"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/wasm_plugin_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
             <!-- 内置插件 -->
             <TextView
                 android:layout_width="wrap_content"

@@ -13,6 +13,7 @@ import androidx.core.view.WindowInsetsCompat
 import io.github.aixtin.nyrallite.contract.McpConfigStore
 import io.github.aixtin.nyrallite.contract.SecuritySettingsStore
 import io.github.aixtin.nyrallite.kernel.getOrNull
+import io.github.aixtin.nyrallite.plugins.wasm.WasmPluginRepo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -53,13 +54,66 @@ class PluginsActivity : AppCompatActivity() {
             externalPanel.refresh()
         }
         findViewById<Button>(R.id.btn_import_apk).setOnClickListener { importer.launch() }
-        val wasmImporter = PluginWasmImporter(this, scope, ::updateDexStatus)
+        val wasmImporter = PluginWasmImporter(this, scope) { msg, isError ->
+            updateDexStatus(msg, isError)
+            refreshWasmPlugins()
+        }
         findViewById<Button>(R.id.btn_import_wasm).setOnClickListener { wasmImporter.launch() }
         findViewById<TextView>(R.id.btn_unload_all).setOnClickListener { unloadAll(app) }
         externalPanel.refresh()
+        refreshWasmPlugins()
 
         buildPluginCards()
     }
+
+    /** 刷新 WASM 插件列表：展示已安装项，支持移除（删文件 + 吊销信任）。 */
+    private fun refreshWasmPlugins() {
+        val container = findViewById<LinearLayout>(R.id.wasm_plugin_list) ?: return
+        container.removeAllViews()
+        val ids = WasmPluginRepo.list(this)
+        if (ids.isEmpty()) {
+            container.addView(TextView(this).apply {
+                text = "暂无 WASM 插件。点「导入 WASM」选择 .wasm 文件。"
+                setTextColor(ContextCompat.getColor(this@PluginsActivity, R.color.ai_text))
+                alpha = 0.6f
+                textSize = 12f
+            })
+            return
+        }
+        for (id in ids) {
+            container.addView(LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(0, 12, 0, 12)
+                addView(TextView(this@PluginsActivity).apply {
+                    text = id
+                    setTextColor(ContextCompat.getColor(this@PluginsActivity, R.color.ai_text))
+                    textSize = 14f
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                })
+                addView(TextView(this@PluginsActivity).apply {
+                    text = "移除"
+                    setTextColor(ContextCompat.getColor(this@PluginsActivity, R.color.tool_fail))
+                    textSize = 13f
+                    background = ContextCompat.getDrawable(this@PluginsActivity, R.drawable.bg_bar_item)
+                    gravity = android.view.Gravity.CENTER
+                    minWidth = 64.dp
+                    val pad = 8.dp
+                    setPadding(pad, pad / 2, pad, pad / 2)
+                    setOnClickListener { removeWasmPlugin(id) }
+                })
+            })
+        }
+    }
+
+    private fun removeWasmPlugin(id: String) {
+        val ok = WasmPluginRepo.uninstall(this, id)
+        updateDexStatus(if (ok) "已移除 WASM 插件：$id" else "移除失败：$id 的插件文件无法删除", !ok)
+        refreshWasmPlugins()
+    }
+
+    private val Int.dp: Int
+        get() = (this * resources.displayMetrics.density).toInt()
 
     /** 移除全部外部插件：卸载内核侧与磁盘 APK，再清记录。 */
     private fun unloadAll(app: App) {
