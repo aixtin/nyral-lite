@@ -19,7 +19,7 @@ import kotlinx.coroutines.SupervisorJob
 
 /**
  * 插件页：内置插件状态 + 外部 Dex 插件的导入/启停 + 工具自测面板。
- * 自测面板见 [ToolTestPanel]，APK 导入见 [PluginApkImporter]。
+ * 自测面板见 [ToolTestPanel]，APK 导入见 [PluginApkImporter]，WASM 导入见 [PluginWasmImporter]。
  */
 class PluginsActivity : AppCompatActivity() {
 
@@ -53,6 +53,8 @@ class PluginsActivity : AppCompatActivity() {
             externalPanel.refresh()
         }
         findViewById<Button>(R.id.btn_import_apk).setOnClickListener { importer.launch() }
+        val wasmImporter = PluginWasmImporter(this, scope, ::updateDexStatus)
+        findViewById<Button>(R.id.btn_import_wasm).setOnClickListener { wasmImporter.launch() }
         findViewById<TextView>(R.id.btn_unload_all).setOnClickListener { unloadAll(app) }
         externalPanel.refresh()
 
