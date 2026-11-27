@@ -20,6 +20,8 @@ class SystemToolSource(
     private val foreground: ForegroundContract,
 ) : ToolSource {
 
+    override val sourceId: String = "builtin:system-tools"
+
     override suspend fun list(): List<ToolSpec> = SystemToolSpecs.ALL
 
     override suspend fun callOrNull(name: String, argumentsJson: String): ToolResult? {

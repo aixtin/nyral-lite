@@ -86,7 +86,7 @@ class App : Application() {
             // 聚合所有 ToolSource（MCP 远程工具 + 系统原生工具 + 以后的 WebView 工具）
             services.provide(
                 ToolRegistry::class,
-                MultiToolRegistry { services.getAll<ToolSource>() },
+                MultiToolRegistry(gates) { services.getAll<ToolSource>() },
             )
             start()
         }

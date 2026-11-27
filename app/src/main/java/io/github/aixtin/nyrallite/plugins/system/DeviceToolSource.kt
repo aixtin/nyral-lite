@@ -19,6 +19,8 @@ class DeviceToolSource(
     private val clipboard: ClipboardContract,
 ) : ToolSource {
 
+    override val sourceId: String = "builtin:device-tools"
+
     override suspend fun list(): List<ToolSpec> = listOf(
         ToolSpec(
             name = "get_location",

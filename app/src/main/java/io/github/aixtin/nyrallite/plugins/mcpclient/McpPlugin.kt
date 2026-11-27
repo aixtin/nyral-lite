@@ -28,7 +28,7 @@ class McpPlugin : Plugin {
         ctx.require(Permission.NETWORK)
 
         val configStore = ctx.services.get<McpConfigStore>()
-        val mcpSource = McpToolRegistry(configStore, ctx.gates, ctx.pluginId)
+        val mcpSource = McpToolRegistry(configStore, ctx.pluginId)
         ctx.services.provide(
             ToolSource::class,
             mcpSource,

@@ -2,7 +2,6 @@ package io.github.aixtin.nyrallite.plugins.mcpclient
 
 import io.github.aixtin.nyrallite.contract.McpConfig
 import io.github.aixtin.nyrallite.contract.McpConfigStore
-import io.github.aixtin.nyrallite.contract.ToolCallRequest
 import io.github.aixtin.nyrallite.contract.ToolRegistry
 import io.github.aixtin.nyrallite.contract.ToolResult
 import io.github.aixtin.nyrallite.contract.ToolSource
@@ -16,13 +15,14 @@ import kotlinx.coroutines.withContext
  * [ToolRegistry] 的远程 MCP 实现。
  *
  * 配置为空时对外表现为"没有工具"；地址变更时丢弃旧会话与工具缓存。
- * 每次真正调用工具前先过 GateBus（tool.before-call），安全策略可以拦截。
+ * 门禁由 MultiToolRegistry 在统一分发口拦截，这里只负责远程调用。
  */
 class McpToolRegistry(
     private val configStore: McpConfigStore,
-    private val gates: GateBus,
     private val pluginId: String,
 ) : ToolRegistry, ToolSource {
+
+    override val sourceId: String get() = pluginId
 
     private var session: McpSession? = null
     private var sessionConfig: McpConfig? = null
@@ -47,10 +47,7 @@ class McpToolRegistry(
 
     override suspend fun call(name: String, argumentsJson: String): ToolResult =
         withContext(Dispatchers.IO) {
-            when (val gate = gates.check(ToolCallRequest(pluginId, name, argumentsJson))) {
-                is GateResult.Block -> return@withContext ToolResult("安全策略拦截：${gate.reason}", true)
-                GateResult.Allow -> Unit
-            }
+            // 门禁已前移到 MultiToolRegistry 统一拦截，这里不再重复过闸
             val current = session() ?: return@withContext ToolResult("未配置 MCP 服务器地址", true)
             try {
                 McpToolMapping.resultOf(current.callTool(name, argumentsJson))

@@ -17,6 +17,8 @@ class HistoryToolSource(
     private val sessionId: () -> String = { "" },
 ) : ToolSource {
 
+    override val sourceId: String = "builtin:history"
+
     override suspend fun list(): List<ToolSpec> = listOf(
         ToolSpec(
             name = "history_search",

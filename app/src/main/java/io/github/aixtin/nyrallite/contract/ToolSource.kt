@@ -11,8 +11,15 @@ package io.github.aixtin.nyrallite.contract
  */
 interface ToolSource {
 
+    /** 来源标识：门禁判定与审计日志按此归属（内置来源用 builtin: 前缀）。 */
+    val sourceId: String
+
     /** 这个来源当前可声明的工具清单。 */
     suspend fun list(): List<ToolSpec>
+
+    /** 该来源是否声明了此工具；默认按 list() 判断，来源可覆写为更廉价的实现。 */
+    suspend fun owns(name: String): Boolean =
+        runCatching { list().any { it.name == name } }.getOrDefault(false)
 
     /** 执行一次工具调用；只处理自己来源的工具名，其他名字返回 null。 */
     suspend fun callOrNull(name: String, argumentsJson: String): ToolResult?
