@@ -5,7 +5,7 @@
 > 文档目的：让第三方开发者写一个 **Dex APK 插件**，装进 App 后能向模型提供工具（tool calling）。
 > 仓库内参考实现：`testplugin/`（最小 HelloPlugin）、`app/src/main/java/.../plugins/`（内置插件）。
 
-> **两条插件通道**：本篇讲 Dex APK 插件（全功能高信任通道，入口默认隐藏：连点插件页标题「插件」15 次解锁）。
+> **两条插件通道**：本篇讲 Dex APK 插件（全功能高信任通道，入口默认隐藏：连点插件页标题「插件」15 次（3 秒内）解锁）。
 > 第三方插件请走 WASM 通道：单个 `.wasm` 文件、沙箱隔离、能力按导入声明，见 **[wasm-plugin-dev.md](wasm-plugin-dev.md)**。
 
 ---
