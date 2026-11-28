@@ -22,6 +22,8 @@ internal class ChatRound(
     private val transport: ChatTransport,
     private val currentPersonaId: () -> String?,
     private val sessionSummary: () -> String,
+    /** 工具轮上限；每次判定现查，配置页改动立即生效。 */
+    private val maxToolRounds: () -> Int = { DEFAULT_TOOL_ROUNDS },
     /** 工具来源告警：null 表示恢复正常，用于显示/收起标题栏提示。 */
     private val onToolsWarning: (String?) -> Unit = {},
 ) {
@@ -45,7 +47,7 @@ internal class ChatRound(
                             // Done 已声明收尾，等打字机追平后 onDrained 做最终处理
                             return
                         }
-                        if (round >= MAX_TOOL_ROUNDS) {
+                        if (round >= maxToolRounds()) {
                             typewriter.append("\n\n_（工具调用次数达到上限）_", "")
                             typewriter.finish()
                             return
@@ -131,8 +133,8 @@ internal class ChatRound(
         }
     }
 
-    private companion object {
-        /** 防止模型在工具结果上无限绕圈。 */
-        const val MAX_TOOL_ROUNDS = 5
+    companion object {
+        /** 防止模型在工具结果上无限绕圈；配置页可覆盖（1～99）。 */
+        const val DEFAULT_TOOL_ROUNDS = 8
     }
 }

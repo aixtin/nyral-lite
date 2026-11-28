@@ -140,6 +140,26 @@
                     android:padding="12dp"
                     android:textColor="@color/ai_text"
                     android:textColorHint="@color/text_hint" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="6dp"
+                    android:text="@string/cfg_rounds"
+                    android:textColor="@color/bar_action_text_muted"
+                    android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/in_rounds"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_field"
+                    android:hint="@string/cfg_rounds_hint"
+                    android:inputType="number"
+                    android:padding="12dp"
+                    android:textColor="@color/ai_text"
+                    android:textColorHint="@color/text_hint" />
             </LinearLayout>
 
             <Button

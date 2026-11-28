@@ -105,6 +105,10 @@ internal class ChatWiring(
                 val tokens = hub.getOrNull<ApiConfigStore>()?.load()?.contextTokens ?: 0
                 if (tokens > 0) tokens else ContextWindow.DEFAULT_MAX_TOKENS
             },
+            maxToolRounds = {
+                hub.getOrNull<ApiConfigStore>()?.load()?.toolRounds?.takeIf { it > 0 }
+                    ?: ChatRound.DEFAULT_TOOL_ROUNDS
+            },
             onRoundEnd = { force ->
                 summarizer?.maybeSummarize(
                     sessions.currentSessionId,

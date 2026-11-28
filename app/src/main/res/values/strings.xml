@@ -27,6 +27,9 @@
     <string name="cfg_context">上下文上限（tokens）</string>
     <string name="cfg_context_hint">留空用默认 24000；按模型真实上限填写，设大会增加延迟和费用</string>
     <string name="cfg_context_invalid">上下文上限需在 4000～2000000 之间</string>
+    <string name="cfg_rounds">工具轮数上限</string>
+    <string name="cfg_rounds_hint">留空用默认 8；一条消息内模型最多连续调用几轮工具</string>
+    <string name="cfg_rounds_invalid">工具轮数上限需在 1～99 之间</string>
     <string name="cfg_mcp">服务地址（可选）</string>
     <string name="cfg_mcp_hint">https://example.com/mcp</string>
     <string name="cfg_mcp_header">请求头名称（可选）</string>

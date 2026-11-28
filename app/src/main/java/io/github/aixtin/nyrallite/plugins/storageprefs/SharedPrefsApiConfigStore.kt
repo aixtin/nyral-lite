@@ -35,6 +35,7 @@ class SharedPrefsApiConfigStore(context: Context) : ApiConfigStore {
             .putString(K_URL, config.baseUrl.trim().trimEnd('/'))
             .putString(K_MODEL, config.model.trim())
             .putInt(K_CONTEXT, config.contextTokens)
+            .putInt(K_TOOL_ROUNDS, config.toolRounds)
         val enc = if (key.isEmpty()) "" else KeyProtector.encrypt(key)
         if (enc != null) {
             editor.putString(K_KEY_ENC, enc).remove(K_KEY).apply()
@@ -49,6 +50,7 @@ class SharedPrefsApiConfigStore(context: Context) : ApiConfigStore {
         apiKey = apiKey,
         model = sp.getString(K_MODEL, DEF_MODEL) ?: DEF_MODEL,
         contextTokens = sp.getInt(K_CONTEXT, 0),
+        toolRounds = sp.getInt(K_TOOL_ROUNDS, 0),
     )
 
     override fun isConfigured(): Boolean = load().apiKey.isNotBlank()
@@ -60,6 +62,7 @@ class SharedPrefsApiConfigStore(context: Context) : ApiConfigStore {
         const val K_KEY_ENC = "api_key_enc"
         const val K_MODEL = "model"
         const val K_CONTEXT = "context_tokens"
+        const val K_TOOL_ROUNDS = "tool_rounds"
 
         // 默认给一个通用兼容端点占位，首次使用需改成自己的服务地址与模型名
         const val DEF_URL = "https://api.example.com/v1"

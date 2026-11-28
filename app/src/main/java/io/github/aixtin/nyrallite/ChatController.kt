@@ -40,6 +40,8 @@ class ChatController(
     private val sessionSummary: () -> String = { "" },
     /** 本轮发送预算；配置页留空时回落到默认值。 */
     private val contextBudget: () -> Int = { ContextWindow.DEFAULT_MAX_TOKENS },
+    /** 工具轮上限；配置页留空时回落到默认值。 */
+    private val maxToolRounds: () -> Int = { ChatRound.DEFAULT_TOOL_ROUNDS },
     /** 一轮完整结束（非取消）后通知外部，用于后台更新摘要；force 表示本轮发生过裁剪。 */
     private val onRoundEnd: (force: Boolean) -> Unit = {},
     /** 取出并清空待发送附件；只有文本和附件都为空时才不发。 */
@@ -57,6 +59,7 @@ class ChatController(
     private val flow: RoundFlow = RoundFlow(state, typewriter, onRoundEnd)
     private val round = ChatRound(
         state, typewriter, flow, runner, transport, currentPersonaId, sessionSummary,
+        maxToolRounds,
     ) { message -> onToolsWarning?.invoke(message) }
     private val sender = ChatSender(state, flow, round, takePendingAttachments)
 

@@ -15,6 +15,7 @@ internal class ModelForm(private val activity: AppCompatActivity) {
     private val inKey = activity.findViewById<EditText>(R.id.in_key)
     private val inModel = activity.findViewById<EditText>(R.id.in_model)
     private val inContext = activity.findViewById<EditText>(R.id.in_context)
+    private val inRounds = activity.findViewById<EditText>(R.id.in_rounds)
     private val store = activity.kernel.services.get<ApiConfigStore>()
 
     fun load() {
@@ -25,6 +26,7 @@ internal class ModelForm(private val activity: AppCompatActivity) {
         inModel.setText(config.model.takeUnless { it == SharedPrefsApiConfigStore.DEF_MODEL }.orEmpty())
         // 0 表示默认值，界面上留空比显示 0 更直白
         inContext.setText(config.contextTokens.takeIf { it > 0 }?.toString().orEmpty())
+        inRounds.setText(config.toolRounds.takeIf { it > 0 }?.toString().orEmpty())
     }
 
     /** 当前输入的端点地址，保存前用于明文警告判断。 */
@@ -44,12 +46,19 @@ internal class ModelForm(private val activity: AppCompatActivity) {
             toast(R.string.cfg_context_invalid)
             return false
         }
+        val roundsInput = inRounds.text.toString().trim()
+        val toolRounds = if (roundsInput.isEmpty()) 0 else roundsInput.toIntOrNull() ?: 0
+        if (roundsInput.isNotEmpty() && toolRounds !in MIN_ROUNDS..MAX_ROUNDS) {
+            toast(R.string.cfg_rounds_invalid)
+            return false
+        }
         store.save(
             ApiConfig(
                 baseUrl = inUrl.text.toString().trim().ifBlank { SharedPrefsApiConfigStore.DEF_URL },
                 apiKey = key,
                 model = inModel.text.toString().trim().ifBlank { SharedPrefsApiConfigStore.DEF_MODEL },
                 contextTokens = contextTokens,
+                toolRounds = toolRounds,
             ),
         )
         return true
@@ -61,5 +70,9 @@ internal class ModelForm(private val activity: AppCompatActivity) {
         /** 上下文预算的可用区间；默认值由 ContextWindow 决定。 */
         const val MIN_CONTEXT = 4_000
         const val MAX_CONTEXT = 2_000_000
+
+        /** 工具轮上限的可用区间；默认值由 ChatRound 决定。 */
+        const val MIN_ROUNDS = 1
+        const val MAX_ROUNDS = 99
     }
 }
