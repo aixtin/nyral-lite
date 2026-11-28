@@ -1,0 +1,2 @@
+Plugin-Entry: io.github.aixtin.nyrallite.stressplugin.StressPlugin
+Contract-Version: 1.0

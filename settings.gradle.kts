@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 rootProject.name = "NyralLite"
 include(":app")
 include(":testplugin")
+include(":stressplugin")
