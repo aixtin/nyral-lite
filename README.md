@@ -96,6 +96,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## 版本记录
 
+### v0.1.4 · 2026-11-28 · versionCode 86
+
+- 修复：http_fetch 跟随 https 跳转（此前 301 一律「无响应」，博客等带跳转的站点抓不到），并携带常规 User-Agent / Accept 请求头
+
+
 ### v0.1.3 · 2026-11-28 · versionCode 84
 
 - 模型自造工具：AI 可在对话中编写并安装自己的 JS 工具（草稿落盘 → 定稿确认 → 调用闭环），信任登记表 + 运行前哈希校验，篡改即拒绝；门禁放行档下定稿免确认
