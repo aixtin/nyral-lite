@@ -30,8 +30,8 @@ internal class PolicyRules(
 ) {
 
     fun decide(tool: String): PolicyVerdict = when {
-        mode == SecurityMode.OFF -> PolicyVerdict.Allow
         tool in deny -> PolicyVerdict.Deny("工具 [$tool] 在禁止名单中")
+        mode == SecurityMode.OFF -> PolicyVerdict.Allow
         tool in allow -> PolicyVerdict.Allow
         mode == SecurityMode.STRICT -> PolicyVerdict.Deny("工具 [$tool] 未在白名单中")
         tool in DEFAULT_ALLOW -> PolicyVerdict.Allow
@@ -56,5 +56,11 @@ internal class PolicyRules(
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .toSet()
+
+        /** 把工具追加进名单文本（已存在则原样返回）；名单用英文逗号分隔。 */
+        fun appendTool(current: String, tool: String): String {
+            val parts = current.split(',', '\n').map { it.trim() }.filter { it.isNotEmpty() }
+            return if (tool in parts) current else (parts + tool).joinToString(",")
+        }
     }
 }

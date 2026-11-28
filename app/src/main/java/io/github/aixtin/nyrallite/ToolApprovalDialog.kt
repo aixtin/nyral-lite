@@ -1,6 +1,11 @@
 package io.github.aixtin.nyrallite
 
 import android.app.Activity
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aixtin.nyrallite.contract.ApprovalDecision
 import io.github.aixtin.nyrallite.contract.ToolApproval
@@ -15,7 +20,12 @@ import kotlin.coroutines.resume
  * [ToolApproval] 的界面对现：用系统对话框询问用户，挂起直到选择。
  *
  * 只持有前台 Activity 的弱引用；没有界面时返回 UNAVAILABLE，
- * 由安全插件按拒绝处理。界面不复制母体，保持最简三按钮。
+ * 由安全插件按拒绝处理。界面不复制母体：三个主按钮，正文下方是
+ * 「加入白名单/加入黑名单」两个列表项（名单由安全插件持久化）。
+ *
+ * 注意：appcompat 的 AlertDialog 在 setMessage 与 setItems 共存时会
+ * 静默丢弃列表（setupContent 只在 message 为空时才把 ListView 换进
+ * 层级），因此这里用自绘正文 + 列表项的自定义视图，而不是 setItems。
  */
 class ToolApprovalDialog : ToolApproval {
 
@@ -58,14 +68,23 @@ class ToolApprovalDialog : ToolApproval {
                         .append('\n').append(it)
                 }
             }
+            // 自定义视图的列表项点击后需手动关弹窗；先建 content 再建 dialog，
+            // 用可变回调把 dismiss 接进去。
+            var dismissDialog: () -> Unit = {}
             val dialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(title)
-                .setMessage(message)
+                .setView(
+                    buildContent(activity, message) { decision ->
+                        settle(decision)
+                        dismissDialog()
+                    },
+                )
                 .setPositiveButton(R.string.approval_allow_once) { _, _ -> settle(ApprovalDecision.ALLOW_ONCE) }
                 .setNeutralButton(R.string.approval_allow_session) { _, _ -> settle(ApprovalDecision.ALLOW_SESSION) }
                 .setNegativeButton(R.string.approval_deny) { _, _ -> settle(ApprovalDecision.DENY) }
                 .setOnCancelListener { settle(ApprovalDecision.DENY) }
                 .create()
+            dismissDialog = { dialog.dismiss() }
 
             dialog.setCanceledOnTouchOutside(false)
             dialog.setOnDismissListener { settle(ApprovalDecision.DENY) }
@@ -77,6 +96,65 @@ class ToolApprovalDialog : ToolApproval {
             }
             cont.invokeOnCancellation { activity.runOnUiThread { dialog.dismiss() } }
         }
+    }
+
+    /** 正文 + 两个名单列表项；点击列表项即按对应决定结算。 */
+    private fun buildContent(
+        activity: Activity,
+        message: CharSequence,
+        onPick: (ApprovalDecision) -> Unit,
+    ): View {
+        val hpad = attrDimen(activity, androidx.appcompat.R.attr.dialogPreferredPadding)
+        val vpad = activity.resources.getDimensionPixelOffset(
+            androidx.appcompat.R.dimen.abc_dialog_padding_top_material,
+        )
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(
+                TextView(activity).apply {
+                    text = message
+                    setTextAppearance(androidx.appcompat.R.style.TextAppearance_AppCompat_Subhead)
+                    setPadding(hpad, vpad, hpad, vpad / 2)
+                },
+            )
+            addView(
+                listItem(activity, activity.getString(R.string.approval_add_allowlist)) {
+                    onPick(ApprovalDecision.ALLOW_ALWAYS)
+                },
+            )
+            addView(
+                listItem(activity, activity.getString(R.string.approval_add_denylist)) {
+                    onPick(ApprovalDecision.DENY_ALWAYS)
+                },
+            )
+        }
+    }
+
+    /** 单个列表项：48dp 触摸高度 + 水波纹背景，观感对齐系统列表项。 */
+    private fun listItem(activity: Activity, label: String, onClick: () -> Unit): TextView {
+        val hpad = attrDimen(activity, androidx.appcompat.R.attr.dialogPreferredPadding)
+        val vpad = activity.resources.getDimensionPixelOffset(
+            androidx.appcompat.R.dimen.abc_dialog_padding_top_material,
+        )
+        val touch = (48 * activity.resources.displayMetrics.density).toInt()
+        val bg = TypedValue()
+        activity.theme.resolveAttribute(android.R.attr.selectableItemBackground, bg, true)
+        return TextView(activity).apply {
+            text = label
+            setTextAppearance(androidx.appcompat.R.style.TextAppearance_AppCompat_Subhead)
+            gravity = Gravity.CENTER_VERTICAL
+            minHeight = touch
+            setPadding(hpad, vpad / 2, hpad, vpad / 2)
+            if (bg.resourceId != 0) setBackgroundResource(bg.resourceId)
+            setOnClickListener { onClick() }
+        }
+    }
+
+    /** 解析主题属性里的尺寸值。 */
+    private fun attrDimen(activity: Activity, attr: Int): Int {
+        val tv = TypedValue()
+        activity.theme.resolveAttribute(attr, tv, true)
+        return TypedValue.complexToDimensionPixelSize(tv.data, activity.resources.displayMetrics)
     }
 
     private companion object {

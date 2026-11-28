@@ -3,6 +3,7 @@ package io.github.aixtin.nyrallite.plugins.dex
 import android.content.Context
 import android.util.Log
 import dalvik.system.DexClassLoader
+import io.github.aixtin.nyrallite.contract.ContractVersion
 import io.github.aixtin.nyrallite.kernel.Plugin
 import java.io.File
 
@@ -43,6 +44,18 @@ internal class DexPool(
         val entryClassName = DexSupport.readPluginEntry(apkFile)
         if (entryClassName.isNullOrBlank()) {
             Log.w(TAG, "load: Plugin-Entry not found in MANIFEST.MF")
+            return null
+        }
+
+        // 契约版本装载期校验：只拦大版本不匹配，小版本差异放行
+        val declaredVersion = DexSupport.readContractVersion(apkFile)
+        val pluginMajor = declaredVersion?.substringBefore('.')?.toIntOrNull()
+        if (pluginMajor == null || pluginMajor != ContractVersion.MAJOR) {
+            Log.e(
+                TAG,
+                "load: 契约版本不兼容 插件声明=$declaredVersion " +
+                    "宿主=${ContractVersion.MAJOR}.${ContractVersion.MINOR}",
+            )
             return null
         }
 

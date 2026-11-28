@@ -75,6 +75,25 @@ internal class PolicyTable(
             }
             ApprovalDecision.DENY ->
                 Outcome(GateResult.Block("用户拒绝执行工具 [${request.tool}]"), "用户拒绝")
+            ApprovalDecision.ALLOW_ALWAYS -> {
+                val updated = PolicyRules.appendTool(
+                    config.getString(SecurityConfigKeys.ALLOW),
+                    request.tool,
+                )
+                config.put(SecurityConfigKeys.ALLOW, updated)
+                Outcome(GateResult.Allow, "用户加入白名单")
+            }
+            ApprovalDecision.DENY_ALWAYS -> {
+                val updated = PolicyRules.appendTool(
+                    config.getString(SecurityConfigKeys.DENY),
+                    request.tool,
+                )
+                config.put(SecurityConfigKeys.DENY, updated)
+                Outcome(
+                    GateResult.Block("工具 [${request.tool}] 已被用户加入禁止名单"),
+                    "用户加入黑名单",
+                )
+            }
             ApprovalDecision.UNAVAILABLE ->
                 Outcome(GateResult.Block("确认通道不可用，请打开 App 后重试"), "确认通道不可用")
             null -> Outcome(GateResult.Block("等待确认超时，已拒绝工具 [${request.tool}]"), "确认超时")

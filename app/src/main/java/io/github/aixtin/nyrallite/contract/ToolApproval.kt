@@ -20,6 +20,12 @@ enum class ApprovalDecision {
     /** 拒绝执行。 */
     DENY,
 
+    /** 允许并把工具加入白名单：以后不再询问。 */
+    ALLOW_ALWAYS,
+
+    /** 拒绝并把工具加入禁止名单：以后直接拒绝。 */
+    DENY_ALWAYS,
+
     /** 确认通道不可用（无前台界面等）。 */
     UNAVAILABLE,
 }

@@ -111,7 +111,12 @@ dependencies {
 
 ```
 Plugin-Entry: com.example.nowplugin.NowPlugin
+Contract-Version: 1.0
 ```
+
+`Contract-Version` 是可选行，声明插件编译针对的宿主契约版本（见宿主
+`contract/ContractVersion.kt`）。缺省视为 1.0；宿主只校验大版本，大版本
+不匹配的插件拒绝加载，小版本差异放行。
 
 构建：
 

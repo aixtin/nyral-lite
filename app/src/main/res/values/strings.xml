@@ -180,6 +180,8 @@
     <string name="approval_allow_once">允许一次</string>
     <string name="approval_allow_session">重启前不再询问</string>
     <string name="approval_deny">拒绝</string>
+    <string name="approval_add_allowlist">加入白名单（以后不再询问）</string>
+    <string name="approval_add_denylist">加入黑名单（以后直接拒绝）</string>
 
     <string name="upd_title">发现新版本 %1$s</string>
     <string name="upd_message">已发布新版本，前往 Releases 页面下载安装包。覆盖安装不会丢失会话与设置。</string>

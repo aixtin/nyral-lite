@@ -20,12 +20,12 @@ class ToolPolicyTest {
 
     private fun rules(vararg pairs: Pair<String, String>) = PolicyRules.from(config(*pairs))
 
-    // —— 判定顺序：关 > 禁止 > 白名单 > 严格档拒绝 > 预置白名单 > 确认 ——
+    // —— 判定顺序：禁止 > 关 > 白名单 > 严格档拒绝 > 预置白名单 > 确认 ——
 
     @Test
-    fun offModeAllowsEverythingEvenDenyListed() {
+    fun denyListStillBlocksWhenGateOff() {
         val r = rules(SecurityConfigKeys.MODE to "off", SecurityConfigKeys.DENY to "run_shell")
-        assertEquals(PolicyVerdict.Allow, r.decide("run_shell"))
+        assertEquals(PolicyVerdict.Deny("工具 [run_shell] 在禁止名单中"), r.decide("run_shell"))
         assertEquals(PolicyVerdict.Allow, r.decide("anything"))
     }
 
@@ -38,6 +38,14 @@ class ToolPolicyTest {
         )
         assertEquals(PolicyVerdict.Deny("工具 [run_shell] 在禁止名单中"), r.decide("run_shell"))
         assertTrue(r.decide("memory_search") is PolicyVerdict.Deny)
+    }
+
+    @Test
+    fun appendToolDeduplicatesAndSkipsBlank() {
+        assertEquals("a,b", PolicyRules.appendTool("a", "b"))
+        assertEquals("a,b", PolicyRules.appendTool("a,b", "b"))
+        assertEquals("b", PolicyRules.appendTool("", "b"))
+        assertEquals("a,b", PolicyRules.appendTool("a,\n", "b"))
     }
 
     @Test

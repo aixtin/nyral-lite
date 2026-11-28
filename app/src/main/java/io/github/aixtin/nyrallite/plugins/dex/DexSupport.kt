@@ -9,7 +9,14 @@ import java.util.zip.ZipFile
 internal object DexSupport {
 
     /** 读入口类：优先 APK 内 assets/plugin-entry.txt，兼容旧的 META-INF/MANIFEST.MF。 */
-    fun readPluginEntry(apkFile: File): String? {
+    fun readPluginEntry(apkFile: File): String? =
+        readEntryText(apkFile)?.let(::parseEntry)
+
+    /** 读插件声明的契约版本（Contract-Version: 键）；未声明时视为 1.0。 */
+    fun readContractVersion(apkFile: File): String? =
+        readEntryText(apkFile)?.let(::parseContractVersion) ?: DEFAULT_CONTRACT_VERSION
+
+    private fun readEntryText(apkFile: File): String? {
         try {
             // 必须用 ZipFile（走 central directory）：apksigner 重签后会把 META-INF/MANIFEST.MF
             // 挪到 APK Signing Block 之后，ZipInputStream 顺序读到签名块就停了。
@@ -19,14 +26,14 @@ internal object DexSupport {
                 while (entries.hasMoreElements()) {
                     val e = entries.nextElement()
                     if (e.name.equals(ASSETS_ENTRY, ignoreCase = true)) {
-                        return parseEntry(zip.getInputStream(e).bufferedReader().readText())
+                        return zip.getInputStream(e).bufferedReader().readText()
                     }
                     if (e.name.equals(LEGACY_ENTRY, ignoreCase = true)) legacy = e
                 }
-                legacy?.let { return parseEntry(zip.getInputStream(it).bufferedReader().readText()) }
+                legacy?.let { return zip.getInputStream(it).bufferedReader().readText() }
             }
         } catch (t: Throwable) {
-            Log.e(TAG, "readPluginEntry failed", t)
+            Log.e(TAG, "readEntryText failed", t)
         }
         return null
     }
@@ -36,8 +43,14 @@ internal object DexSupport {
         ?.substringAfter(':')?.trim()
         ?.takeIf { it.isNotBlank() }
 
+    private fun parseContractVersion(text: String): String? = text.lineSequence()
+        .firstOrNull { it.startsWith("Contract-Version:", ignoreCase = true) }
+        ?.substringAfter(':')?.trim()
+        ?.takeIf { it.isNotBlank() }
+
     private const val ASSETS_ENTRY = "assets/plugin-entry.txt"
     private const val LEGACY_ENTRY = "META-INF/MANIFEST.MF"
+    private const val DEFAULT_CONTRACT_VERSION = "1.0"
 
     /** 只调用 ClassLoader.close()；加载失败时用，避免连带清理未注册的 dex。 */
     fun safeClose(loader: DexClassLoader) {
