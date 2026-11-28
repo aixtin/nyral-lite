@@ -48,7 +48,7 @@ sealed interface JsToolMetaResult {
  */
 fun parseJsToolMeta(script: String): JsToolMetaResult {
     val block = Regex("/\\*\\s*(nyral\\.tool)\\s*(\\{.*?\\})\\s*\\*/", RegexOption.DOT_MATCHES_ALL)
-        .find(script) ?: return JsToolMetaResult.Fail("脚本头部缺少 nyral.tool 元数据注释块")
+        .find(script) ?: return JsToolMetaResult.Fail("脚本头部缺少 nyral.tool 元数据注释块（格式：第一行 /* nyral.tool {JSON} */）")
 
     val raw = block.groupValues[2]
     // org.json 对无引号字符串、单引号等过于宽容，不可信输入先过严格 JSON 校验

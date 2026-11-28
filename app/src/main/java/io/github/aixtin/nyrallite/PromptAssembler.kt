@@ -25,7 +25,9 @@ internal object PromptAssembler {
         val personaBlock = runCatching { PersonaIndex.blockFor(app, personaId) }.getOrDefault("")
         // 前情摘要：只放要点，原文靠 history_search 回读
         val summaryBlock = runCatching { summary() }.getOrDefault("")
-        return PromptDefaults.SYSTEM + personaBlock + summaryBlock + memoryBlock + skillPrompt
+        // 自造工具箱：铸造流程说明 + 已装 JS 工具清单（名字/能力/草稿态）
+        val toolboxBlock = runCatching { ToolboxPrompt.blockFor(app) }.getOrDefault("")
+        return PromptDefaults.SYSTEM + personaBlock + summaryBlock + memoryBlock + skillPrompt + toolboxBlock
     }
 
     /** 从 history 里取最后一条用户消息，匹配 Skill 指令块。无匹配返回空串。 */

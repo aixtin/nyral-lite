@@ -34,11 +34,22 @@ internal class PolicyRules(
         mode == SecurityMode.OFF -> PolicyVerdict.Allow
         tool in allow -> PolicyVerdict.Allow
         mode == SecurityMode.STRICT -> PolicyVerdict.Deny("工具 [$tool] 未在白名单中")
-        tool in DEFAULT_ALLOW -> PolicyVerdict.Allow
+        tool in DEFAULT_ALLOW || isSelfForged(tool) -> PolicyVerdict.Allow
         else -> PolicyVerdict.Confirm
     }
 
+    /**
+     * 模型自造工具（js_ 前缀）与铸造工具：auto 档免确认。
+     * 信任锚在文件哈希登记与沙箱能力网关，不在逐次弹窗——调试期免弹窗、
+     * 定稿一次弹窗是既定口径，逐次确认只会打断试跑；禁止名单仍然优先。
+     */
+    private fun isSelfForged(tool: String): Boolean =
+        tool.startsWith("js_") || tool in FORGE_TOOLS
+
     companion object {
+        /** 模型自造工具铸造器的两个入口；与 plugins/js 的 ToolForgeSource 对应 */
+        val FORGE_TOOLS: Set<String> = setOf("write_js_tool", "finalize_js_tool")
+
         /** 预置白名单：只读自有数据的工具，仅 auto 档免确认；
          *  严格档按字面白名单判定，不含默认项。用户显式禁止仍优先。 */
         val DEFAULT_ALLOW: Set<String> = setOf("memory_search", "history_search")

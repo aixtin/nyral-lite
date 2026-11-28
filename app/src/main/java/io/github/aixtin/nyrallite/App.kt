@@ -28,6 +28,8 @@ import io.github.aixtin.nyrallite.plugins.dex.DexPluginLoader
 import io.github.aixtin.nyrallite.plugins.dex.ExternalPluginStore
 import io.github.aixtin.nyrallite.plugins.dex.TrustedApkStore
 import io.github.aixtin.nyrallite.plugins.voicestt.VoiceSttPlugin
+import io.github.aixtin.nyrallite.plugins.js.JsToolSource
+import io.github.aixtin.nyrallite.plugins.js.ToolForgeSource
 import io.github.aixtin.nyrallite.plugins.wasm.WasmHttpFetcher
 import io.github.aixtin.nyrallite.plugins.wasm.WasmToolSource
 import io.github.aixtin.nyrallite.plugins.system.NotificationSenderImpl
@@ -96,6 +98,21 @@ class App : Application() {
                     },
                     httpFetcher = { url -> WasmHttpFetcher.fetch(url) },
                 ),
+                requires = emptySet(),
+            )
+            // JS 工具来源：已装 JS 工具（含模型自造草稿）注册为模型可调用工具
+            services.provide(
+                ToolSource::class,
+                JsToolSource(
+                    appContext = this@App,
+                    httpFetcher = { url -> WasmHttpFetcher.fetch(url) },
+                ),
+                requires = emptySet(),
+            )
+            // 模型自造工具铸造器：模型写脚本落盘（草稿）+ 定稿确认（复用主体审批通道）
+            services.provide(
+                ToolSource::class,
+                ToolForgeSource(appContext = this@App, approval = approval),
                 requires = emptySet(),
             )
             // 聚合所有 ToolSource（MCP 远程工具 + 系统原生工具 + 以后的 WebView 工具）
