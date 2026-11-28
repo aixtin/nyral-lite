@@ -28,13 +28,13 @@ internal class ChatRound(
 
     suspend fun run() {
         try {
-            val load = runner.loadSpecs()
-            // 某个来源（多半是 MCP）失败时挂常驻告警条，其它工具照常可用
-            onToolsWarning(load.error)
-            val tools = load.specs
             var round = 0
             while (true) {
-                when (val outcome = streamOnce(tools)) {
+                // 每轮重新取工具清单：本轮刚装好的工具（如模型自造 JS 工具）下一轮就能声明
+                val load = runner.loadSpecs()
+                // 某个来源（多半是 MCP）失败时挂常驻告警条，其它工具照常可用
+                onToolsWarning(load.error)
+                when (val outcome = streamOnce(load.specs)) {
                     is RoundOutcome.Failed -> {
                         flow.showError(outcome.message)
                         return
