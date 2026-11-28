@@ -96,6 +96,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## 版本记录
 
+### v0.1.5 · 2026-11-29 · versionCode 87
+
+- 修复：http_fetch 对超过 4KB 的响应由「整体拒收」改为「截断头部交付」——真实网页远超 4KB，此前除极小页面外全部抓取失败；模型侧工具结果本就按 4000 字截断，截断交付不损失有效信息
+
+
 ### v0.1.4 · 2026-11-28 · versionCode 86
 
 - 修复：http_fetch 跟随 https 跳转（此前 301 一律「无响应」，博客等带跳转的站点抓不到），并携带常规 User-Agent / Accept 请求头

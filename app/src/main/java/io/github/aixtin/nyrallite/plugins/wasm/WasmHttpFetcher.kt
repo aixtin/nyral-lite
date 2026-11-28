@@ -4,7 +4,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * WASM 插件的受限网络拉取：仅 https、5 秒超时、响应体超上限即拒。
+ * WASM 插件的受限网络拉取：仅 https、5 秒超时、响应体超上限截断头部交付。
  * 明文 http 一律拒绝——插件请求的 URL 来自模型或插件作者，不放宽到明文。
  */
 internal object WasmHttpFetcher {
@@ -26,9 +26,9 @@ internal object WasmHttpFetcher {
             try {
                 if (conn.responseCode !in 200..299) return@runCatching null
                 val input = conn.inputStream ?: return@runCatching null
-                // 多读一个字节探测超限，超限整体拒绝而不是交付半截响应
-                val capped = input.use { it.readNBytes(WasmPluginGateway.RESULT_CAP + 1) }
-                if (capped.size > WasmPluginGateway.RESULT_CAP) null else capped
+                // 超上限截断头部交付而不是整体拒绝：模型侧工具结果本就按 4000 字截断，
+                // 真实网页远超 4KB，整页拒收会让抓取对真实站点永远失败
+                input.use { it.readNBytes(WasmPluginGateway.RESULT_CAP) }
             } finally {
                 conn.disconnect()
             }
