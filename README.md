@@ -95,7 +95,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## 版本记录
 
-### 未发布（main 分支）
+### v0.1.2 · 2026-11-28 · versionCode 4
 
 - WASM 插件通道：能力网关（log / read_file / notify / http_fetch）、安装确认流、插件列表与卸载、工具执行入口；WAT / Rust 双示例带回归测试
 - Dex APK 导入入口默认隐藏，连点插件页标题 15 次（3 秒内）解锁；插件页空区与 WASM 卡片样式修复
