@@ -18,7 +18,11 @@ internal object WasmHttpFetcher {
             val conn = URL(url).openConnection() as HttpURLConnection
             conn.connectTimeout = CONNECT_TIMEOUT_MS
             conn.readTimeout = READ_TIMEOUT_MS
-            conn.instanceFollowRedirects = false
+            // 跟随同协议跳转（如末尾斜杠 301）；跨到明文 http 由 HttpURLConnection 自身拒绝
+            conn.instanceFollowRedirects = true
+            // 部分站点拒绝默认 UA，带一个常规标识
+            conn.setRequestProperty("User-Agent", "NyralLite/0.1 (+https://github.com/aixtin/nyral-lite)")
+            conn.setRequestProperty("Accept", "*/*")
             try {
                 if (conn.responseCode !in 200..299) return@runCatching null
                 val input = conn.inputStream ?: return@runCatching null
