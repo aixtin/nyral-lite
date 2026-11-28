@@ -17,6 +17,7 @@ import io.github.aixtin.nyrallite.contract.SecuritySettingsStore
 import io.github.aixtin.nyrallite.kernel.getOrNull
 import io.github.aixtin.nyrallite.plugins.js.JsToolRepo
 import io.github.aixtin.nyrallite.plugins.js.JsToolRunner
+import io.github.aixtin.nyrallite.plugins.js.JsToolStore
 import io.github.aixtin.nyrallite.plugins.wasm.WasmHttpFetcher
 import io.github.aixtin.nyrallite.plugins.wasm.WasmPluginRepo
 import kotlinx.coroutines.CoroutineScope
@@ -197,6 +198,7 @@ class PluginsActivity : AppCompatActivity() {
 
     private fun removeJsTool(id: String) {
         val ok = JsToolRepo.uninstall(this, id)
+        JsToolStore(this).remove(id)
         updateDexStatus(if (ok) "已移除 JS 工具：$id" else "移除失败：$id 的工具文件无法删除", !ok)
         refreshJsTools()
     }

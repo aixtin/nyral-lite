@@ -8,6 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aixtin.nyrallite.plugins.js.JsToolMeta
 import io.github.aixtin.nyrallite.plugins.js.JsToolMetaResult
 import io.github.aixtin.nyrallite.plugins.js.JsToolRepo
+import io.github.aixtin.nyrallite.plugins.js.JsToolStore
 import io.github.aixtin.nyrallite.plugins.js.parseJsToolMeta
 import io.github.aixtin.nyrallite.plugins.wasm.WasmPluginRuntime
 import kotlinx.coroutines.CoroutineScope
@@ -62,11 +63,9 @@ internal class JsToolImporter(
         val toolId = suggestedName.substringBeforeLast(".").ifBlank { "tool" }
         val sha = WasmPluginRuntime.sha256(bytes)
 
-        // 同一文件重装（哈希一致）静默通过；更新（哈希变化）走信任确认
-        val installed = JsToolRepo.load(app, toolId)
-        if (installed != null &&
-            WasmPluginRuntime.sha256(installed.toByteArray(Charsets.UTF_8)) == sha
-        ) {
+        // 信任登记表是唯一锚点：登记哈希与文件一致静默通过；无登记或哈希变化走信任确认
+        val registered = JsToolStore(app).get(toolId)
+        if (registered != null && registered.equals(sha, ignoreCase = true)) {
             JsToolRepo.install(app, toolId, script)
             onStatus("已安装：$toolId（此前已信任）", false)
             return
@@ -97,6 +96,7 @@ internal class JsToolImporter(
             )
             .setPositiveButton("信任并安装") { _, _ ->
                 if (JsToolRepo.install(app, toolId, script)) {
+                    JsToolStore(app).put(toolId, sha)
                     onStatus("已安装：$toolId", false)
                 } else {
                     onStatus("安装失败：工具文件保存异常", true)
