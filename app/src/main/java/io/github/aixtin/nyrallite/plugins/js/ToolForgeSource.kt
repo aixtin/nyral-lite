@@ -2,6 +2,7 @@ package io.github.aixtin.nyrallite.plugins.js
 
 import android.content.Context
 import io.github.aixtin.nyrallite.contract.ApprovalDecision
+import io.github.aixtin.nyrallite.contract.SecurityMode
 import io.github.aixtin.nyrallite.contract.ToolApproval
 import io.github.aixtin.nyrallite.contract.ToolResult
 import io.github.aixtin.nyrallite.contract.ToolSource
@@ -17,14 +18,18 @@ import org.json.JSONObject
  *
  *  write_js_tool(toolId, script)：脚本落盘为草稿（不登记信任）。调试期免弹窗是既定口径：
  *  生成过程对话内可见 + QuickJS 沙箱与能力网关兜底 + 能力不超模型自身。
- *  finalize_js_tool(toolId)：定稿确认。复用主体的 [ToolApproval] 通道弹一次窗，
+ *  finalize_js_tool(toolId)：定稿确认。默认复用主体的 [ToolApproval] 通道弹一次窗，
  *  用户允许才登记哈希；登记后脚本文件一旦被改动，运行时校验会拒绝并要求重新定稿。
+ *  门禁放行档（[SecurityMode.OFF]）下免弹窗直接登记——用户已声明不拦截工具操作，
+ *  再弹定稿确认就是骚扰；询问/严格档仍弹窗。
  *
  *  防骚扰：用户拒绝定稿的工具记入本进程拒绝表，同一会话内模型再提交直接拒绝并告知。
  */
 class ToolForgeSource(
     private val appContext: Context,
     private val approval: ToolApproval,
+    /** 当前门禁档位；每次定稿时现查，改档位立即生效 */
+    private val securityMode: () -> SecurityMode = { SecurityMode.AUTO },
 ) : ToolSource {
 
     override val sourceId: String = "builtin:tool-forge"
@@ -82,7 +87,8 @@ class ToolForgeSource(
             ToolResult(
                 "草稿已保存：${JsToolSource.toolName(toolId)}。" +
                     "可直接调用 ${JsToolSource.toolName(toolId)} 试跑（草稿试跑不弹窗）。" +
-                    "确认可用后调用 finalize_js_tool 定稿，定稿会弹窗请用户确认。",
+                    "确认可用后调用 finalize_js_tool 定稿" +
+                    "（默认弹窗请用户确认；门禁放行档自动登记，不弹窗）。",
             )
         } else {
             ToolResult("草稿保存失败：工具文件写入异常", isError = true)
@@ -109,6 +115,14 @@ class ToolForgeSource(
         val registered = JsToolStore(appContext).get(toolId)
         if (registered != null && registered.equals(sha, ignoreCase = true)) {
             return ToolResult("工具 $toolId 已定稿且脚本未变化，无需重复操作")
+        }
+        // 放行档 = 用户声明不拦截工具操作，定稿确认一并免掉，直接登记信任
+        if (securityMode() == SecurityMode.OFF) {
+            JsToolStore(appContext).put(toolId, sha)
+            return ToolResult(
+                "已定稿：${JsToolSource.toolName(toolId)} 已登记信任（门禁放行档，免确认）。" +
+                    "之后脚本文件一旦被改动，运行会被拒绝，需重新定稿。",
+            )
         }
         val decision = approval.ask(
             sourceId,
@@ -168,7 +182,8 @@ class ToolForgeSource(
             ),
             ToolSpec(
                 name = TOOL_FINALIZE,
-                description = "把你写好的 JS 工具草稿定稿：弹窗请用户确认一次，确认后工具受信任长期可用。" +
+                description = "把你写好的 JS 工具草稿定稿：默认弹窗请用户确认一次，确认后工具受信任长期可用；" +
+                    "门禁放行档下自动登记不弹窗。" +
                     "定稿后脚本文件被改动会导致运行被拒，需重新定稿。用户拒绝过的工具不要再提交。",
                 parametersJson = PARAMS_FINALIZE,
             ),

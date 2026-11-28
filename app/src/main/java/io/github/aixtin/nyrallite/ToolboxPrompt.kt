@@ -34,7 +34,7 @@ internal object ToolboxPrompt {
             "脚本在 QuickJS 全局作用域运行：宿主入口 nyral.invoke(\"http_fetch\", JSON.stringify({url:\"...\"})) " +
             "返回响应体字符串或 null；顶层不能用 return，脚本最后一个表达式的值就是工具结果。\n" +
             "流程：write_js_tool 落草稿，直接调用 js_<toolId> 试跑（草稿不弹窗）；" +
-            "确认可用后调用 finalize_js_tool 定稿（用户确认一次）；" +
+            "确认可用后调用 finalize_js_tool 定稿（默认弹窗确认一次，门禁放行档自动登记）；" +
             "定稿后脚本文件被改动会被拒绝运行，需重新定稿。\n" +
             "用户拒绝过的工具，本次会话内不要再提交同一工具。\n" +
             "当前已装 JS 工具：\n$toolbox"

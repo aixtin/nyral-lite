@@ -3,6 +3,8 @@ package io.github.aixtin.nyrallite
 import android.app.Application
 import io.github.aixtin.nyrallite.contract.AttachmentStores
 import io.github.aixtin.nyrallite.contract.MultiToolRegistry
+import io.github.aixtin.nyrallite.contract.SecurityMode
+import io.github.aixtin.nyrallite.contract.SecuritySettingsStore
 import io.github.aixtin.nyrallite.contract.SessionStore
 import io.github.aixtin.nyrallite.contract.ToolApproval
 import io.github.aixtin.nyrallite.contract.ToolRegistry
@@ -109,10 +111,17 @@ class App : Application() {
                 ),
                 requires = emptySet(),
             )
-            // 模型自造工具铸造器：模型写脚本落盘（草稿）+ 定稿确认（复用主体审批通道）
+            // 模型自造工具铸造器：模型写脚本落盘（草稿）+ 定稿确认（复用主体审批通道）；
+            // 门禁放行档下定稿免弹窗，档位每次现查
             services.provide(
                 ToolSource::class,
-                ToolForgeSource(appContext = this@App, approval = approval),
+                ToolForgeSource(
+                    appContext = this@App,
+                    approval = approval,
+                    securityMode = {
+                        services.getOrNull<SecuritySettingsStore>()?.load()?.mode ?: SecurityMode.AUTO
+                    },
+                ),
                 requires = emptySet(),
             )
             // 聚合所有 ToolSource（MCP 远程工具 + 系统原生工具 + 以后的 WebView 工具）
