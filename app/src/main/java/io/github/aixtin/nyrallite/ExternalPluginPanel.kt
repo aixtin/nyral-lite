@@ -20,6 +20,7 @@ class ExternalPluginPanel(
     private val container: LinearLayout,
     private val scope: CoroutineScope,
     private val onStatus: (String, Boolean) -> Unit,
+    private val apkImportUnlocked: () -> Boolean = { true },
 ) {
     private val rows = ExternalPluginRow(activity, ::remove, ::toggle)
 
@@ -27,7 +28,12 @@ class ExternalPluginPanel(
         container.removeAllViews()
         val records = app.externalPlugins.all().sortedBy { it.installedAt }
         if (records.isEmpty()) {
-            container.addView(rows.hint("暂无外部插件。点「导入 APK」选择插件包，第三方签名会先弹窗确认。"))
+            val empty = if (apkImportUnlocked()) {
+                "暂无外部插件。点「导入 APK」选择插件包，第三方签名会先弹窗确认。"
+            } else {
+                "暂无外部插件。"
+            }
+            container.addView(rows.hint(empty))
             return
         }
         for (record in records) {

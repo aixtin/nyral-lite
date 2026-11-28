@@ -51,11 +51,16 @@ class PluginsActivity : AppCompatActivity() {
             app,
             findViewById(R.id.external_plugin_list),
             scope,
-        ) { msg, isError -> updateDexStatus(msg, isError) }
+            { msg, isError -> updateDexStatus(msg, isError) },
+            ::apkImportUnlocked,
+        )
         val importer = PluginApkImporter(this, scope, ::updateDexStatus) {
             externalPanel.refresh()
         }
         findViewById<Button>(R.id.btn_import_apk).setOnClickListener { importer.launch() }
+        // 说明文字与导入入口同进退：入口隐藏时说明一并隐藏，状态消息仍会临时显示
+        findViewById<TextView>(R.id.dex_plugin_status).visibility =
+            if (apkImportUnlocked()) View.VISIBLE else View.GONE
         val wasmImporter = PluginWasmImporter(this, scope) { msg, isError ->
             updateDexStatus(msg, isError)
             refreshWasmPlugins()
@@ -72,11 +77,14 @@ class PluginsActivity : AppCompatActivity() {
      * APK 导入入口默认隐藏：连点标题 15 次（3 秒内）解锁，单向持久生效。
      * 已安装的 APK 插件不受影响，照常展示与加载；WASM 导入入口不受此控制。
      */
+    private fun apkImportUnlocked(): Boolean =
+        getSharedPreferences(PREF_PLUGINS_DEV, MODE_PRIVATE)
+            .getBoolean(KEY_APK_IMPORT_UNLOCKED, false)
+
     private fun setupApkImportVisibility() {
-        val prefs = getSharedPreferences(PREF_PLUGINS_DEV, MODE_PRIVATE)
         val apkImport = findViewById<Button>(R.id.btn_import_apk)
         apkImport.visibility =
-            if (prefs.getBoolean(KEY_APK_IMPORT_UNLOCKED, false)) View.VISIBLE else View.GONE
+            if (apkImportUnlocked()) View.VISIBLE else View.GONE
         var tapCount = 0
         var tapStart = 0L
         findViewById<TextView>(R.id.plugins_title_text).setOnClickListener {
@@ -87,8 +95,10 @@ class PluginsActivity : AppCompatActivity() {
             }
             tapCount++
             if (tapCount >= UNLOCK_TAPS) {
-                prefs.edit().putBoolean(KEY_APK_IMPORT_UNLOCKED, true).apply()
+                getSharedPreferences(PREF_PLUGINS_DEV, MODE_PRIVATE)
+                    .edit().putBoolean(KEY_APK_IMPORT_UNLOCKED, true).apply()
                 apkImport.visibility = View.VISIBLE
+                findViewById<TextView>(R.id.dex_plugin_status).visibility = View.VISIBLE
                 tapCount = 0
             }
         }
@@ -103,34 +113,14 @@ class PluginsActivity : AppCompatActivity() {
             container.addView(TextView(this).apply {
                 text = "暂无 WASM 插件。点「导入 WASM」选择 .wasm 文件。"
                 setTextColor(ContextCompat.getColor(this@PluginsActivity, R.color.ai_text))
-                alpha = 0.6f
+                alpha = 0.5f
                 textSize = 12f
             })
             return
         }
+        val rows = ExternalPluginRow(this)
         for (id in ids) {
-            container.addView(LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = android.view.Gravity.CENTER_VERTICAL
-                setPadding(0, 12, 0, 12)
-                addView(TextView(this@PluginsActivity).apply {
-                    text = id
-                    setTextColor(ContextCompat.getColor(this@PluginsActivity, R.color.ai_text))
-                    textSize = 14f
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                })
-                addView(TextView(this@PluginsActivity).apply {
-                    text = "移除"
-                    setTextColor(ContextCompat.getColor(this@PluginsActivity, R.color.tool_fail))
-                    textSize = 13f
-                    background = ContextCompat.getDrawable(this@PluginsActivity, R.drawable.bg_bar_item)
-                    gravity = android.view.Gravity.CENTER
-                    minWidth = 64.dp
-                    val pad = 8.dp
-                    setPadding(pad, pad / 2, pad, pad / 2)
-                    setOnClickListener { removeWasmPlugin(id) }
-                })
-            })
+            container.addView(rows.wasm(id) { removeWasmPlugin(id) })
         }
     }
 
@@ -196,6 +186,7 @@ class PluginsActivity : AppCompatActivity() {
     private fun updateDexStatus(msg: String, isError: Boolean = false) {
         runOnUiThread {
             findViewById<TextView>(R.id.dex_plugin_status)?.apply {
+                visibility = View.VISIBLE
                 text = msg
                 setTextColor(
                     ContextCompat.getColor(

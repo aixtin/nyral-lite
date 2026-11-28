@@ -12,9 +12,54 @@ import io.github.aixtin.nyrallite.plugins.dex.ExternalPluginRecord
 /** 外部插件的一行卡片：名称、版本、移除按钮、启停开关与状态行。 */
 internal class ExternalPluginRow(
     private val activity: AppCompatActivity,
-    private val onRemove: (ExternalPluginRecord) -> Unit,
-    private val onToggle: (ExternalPluginRecord, Boolean, SwitchCompat) -> Unit,
+    private val onRemove: (ExternalPluginRecord) -> Unit = {},
+    private val onToggle: (ExternalPluginRecord, Boolean, SwitchCompat) -> Unit = { _, _, _ -> },
 ) {
+
+    /** WASM 插件的一行卡片：与外部插件卡片同一套视觉（名称加粗 + 胶囊移除 + 状态行）。 */
+    fun wasm(id: String, onRemove: () -> Unit): LinearLayout =
+        LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            background = ContextCompat.getDrawable(activity, R.drawable.bg_card)
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { bottomMargin = dp(8) }
+
+            addView(
+                LinearLayout(activity).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    addView(
+                        TextView(activity).apply {
+                            text = id
+                            textSize = 14f
+                            typeface = Typeface.DEFAULT_BOLD
+                            setTextColor(ContextCompat.getColor(activity, R.color.ai_text))
+                            layoutParams = LinearLayout.LayoutParams(
+                                0,
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                1f,
+                            )
+                        },
+                    )
+                    addView(chip("移除", R.color.tool_fail) { onRemove() })
+                },
+            )
+            addView(
+                TextView(activity).apply {
+                    text = "运行中"
+                    textSize = 11f
+                    setTextColor(ContextCompat.getColor(activity, R.color.brand))
+                    alpha = 0.75f
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    ).apply { topMargin = dp(4) }
+                },
+            )
+        }
 
     fun build(
         record: ExternalPluginRecord,
