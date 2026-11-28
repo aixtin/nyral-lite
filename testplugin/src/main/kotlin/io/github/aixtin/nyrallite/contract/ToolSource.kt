@@ -2,16 +2,26 @@ package io.github.aixtin.nyrallite.contract
 
 /**
  * 工具来源：注册一组工具 + 执行调用。
- * 插件实现它并通过 ctx.services.provide(ToolSource::class, ...) 注册，
- * 宿主会把所有来源聚合起来交给模型。
+ *
+ * 与 [ToolRegistry] 的关系：ToolRegistry 是主体认的统一入口，MultiToolRegistry 聚合多个 ToolSource；
+ * 每个插件可以注册自己的 ToolSource 实现（MCP 远程工具、系统原生工具、以后的 WebView 工具……），
+ * 主体用 MultiToolRegistry 抹平差异，对 ChatTransport 暴露单一个 ToolRegistry 接口。
+ *
+ * 插件只关心自己的来源能不能被聚合，不关心有多少个来源、谁先谁后——Kernel 负责组装。
  */
 interface ToolSource {
 
-    /** 来源标识：门禁判定与审计日志按此归属。默认按类名生成，可与宿主接口各自演进。 */
+    /** 来源标识：门禁判定与审计日志按此归属（内置来源用 builtin: 前缀）。
+     *  默认按类名生成。给默认实现是刻意的：接口加新成员必须向下兼容，
+     *  否则按旧契约编译的插件运行时直接 AbstractMethodError。 */
     val sourceId: String get() = "plugin:${javaClass.name}"
 
     /** 这个来源当前可声明的工具清单。 */
     suspend fun list(): List<ToolSpec>
+
+    /** 该来源是否声明了此工具；默认按 list() 判断，来源可覆写为更廉价的实现。 */
+    suspend fun owns(name: String): Boolean =
+        runCatching { list().any { it.name == name } }.getOrDefault(false)
 
     /** 执行一次工具调用；只处理自己来源的工具名，其他名字返回 null。 */
     suspend fun callOrNull(name: String, argumentsJson: String): ToolResult?

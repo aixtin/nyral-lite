@@ -126,7 +126,4 @@ class Kernel(
         return runCatching { plugin.panel() }.getOrNull()
     }
 
-    /** 列出所有已安装插件的 manifest（快照，不随后续 uninstall 自动更新）。 */
-    fun installedManifests(): List<PluginManifest> =
-        handles.values.map { it.manifest }
 }
