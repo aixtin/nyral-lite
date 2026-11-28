@@ -2,6 +2,7 @@ package io.github.aixtin.nyrallite
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
@@ -38,6 +39,7 @@ class PluginsActivity : AppCompatActivity() {
             insets
         }
         findViewById<View>(R.id.btn_back).setOnClickListener { finish() }
+        setupApkImportVisibility()
         findViewById<View>(R.id.btn_tool_test).setOnClickListener {
             startActivity(Intent(this, ToolTestActivity::class.java))
         }
@@ -64,6 +66,32 @@ class PluginsActivity : AppCompatActivity() {
         refreshWasmPlugins()
 
         buildPluginCards()
+    }
+
+    /**
+     * APK 导入入口默认隐藏：连点标题 15 次（3 秒内）解锁，单向持久生效。
+     * 已安装的 APK 插件不受影响，照常展示与加载；WASM 导入入口不受此控制。
+     */
+    private fun setupApkImportVisibility() {
+        val prefs = getSharedPreferences(PREF_PLUGINS_DEV, MODE_PRIVATE)
+        val apkImport = findViewById<Button>(R.id.btn_import_apk)
+        apkImport.visibility =
+            if (prefs.getBoolean(KEY_APK_IMPORT_UNLOCKED, false)) View.VISIBLE else View.GONE
+        var tapCount = 0
+        var tapStart = 0L
+        findViewById<TextView>(R.id.plugins_title_text).setOnClickListener {
+            val now = SystemClock.elapsedRealtime()
+            if (now - tapStart > TAP_WINDOW_MS) {
+                tapCount = 0
+                tapStart = now
+            }
+            tapCount++
+            if (tapCount >= UNLOCK_TAPS) {
+                prefs.edit().putBoolean(KEY_APK_IMPORT_UNLOCKED, true).apply()
+                apkImport.visibility = View.VISIBLE
+                tapCount = 0
+            }
+        }
     }
 
     /** 刷新 WASM 插件列表：展示已安装项，支持移除（删文件 + 吊销信任）。 */
@@ -182,5 +210,9 @@ class PluginsActivity : AppCompatActivity() {
     private companion object {
         const val ID_SECURITY = "security-policy"
         const val ID_MCP = "mcp-client"
+        const val PREF_PLUGINS_DEV = "plugins_dev"
+        const val KEY_APK_IMPORT_UNLOCKED = "apk_import_unlocked"
+        const val UNLOCK_TAPS = 15
+        const val TAP_WINDOW_MS = 3_000L
     }
 }
