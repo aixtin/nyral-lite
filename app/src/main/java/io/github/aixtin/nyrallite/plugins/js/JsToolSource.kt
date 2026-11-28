@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
  */
 class JsToolSource(
     private val appContext: Context,
-    private val httpFetcher: ((url: String) -> ByteArray?)? = null,
+    private val httpFetcher: ((url: String, offset: Int) -> ByteArray?)? = null,
 ) : ToolSource {
 
     override val sourceId: String = "builtin:js-tools"

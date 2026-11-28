@@ -31,8 +31,10 @@ internal object ToolboxPrompt {
             "你可以用 write_js_tool 给自己写 JS 工具。脚本第一行必须是：" +
             "/* nyral.tool {\"name\":\"展示名\",\"description\":\"一句话\",\"contractVersion\":\"1.0\",\"capabilities\":[\"http_fetch\"]} */" +
             "（JSON 紧跟 nyral.tool，不要写成 Javadoc 键值行）。\n" +
-            "脚本在 QuickJS 全局作用域运行：宿主入口 nyral.invoke(\"http_fetch\", JSON.stringify({url:\"...\"})) " +
-            "返回响应体字符串或 null；顶层不能用 return，脚本最后一个表达式的值就是工具结果。\n" +
+            "脚本在 QuickJS 全局作用域运行：宿主入口 nyral.invoke(\"http_fetch\", JSON.stringify({url:\"...\", offset:0})) " +
+            "返回响应正文文本或 null；HTML 页面自动提取正文（剥掉标签/脚本/导航），非 HTML 原样返回；" +
+            "offset 可选，跳过响应体前 offset 字节再读取，用于超大内容的分段抓取；" +
+            "顶层不能用 return，脚本最后一个表达式的值就是工具结果。\n" +
             "流程：write_js_tool 落草稿，直接调用 js_<toolId> 试跑（草稿不弹窗）；" +
             "确认可用后调用 finalize_js_tool 定稿（默认弹窗确认一次，门禁放行档自动登记）；" +
             "定稿后脚本文件被改动会被拒绝运行，需重新定稿。\n" +

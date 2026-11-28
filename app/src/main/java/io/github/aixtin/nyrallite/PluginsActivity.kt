@@ -186,7 +186,7 @@ class PluginsActivity : AppCompatActivity() {
     private fun runJsTool(id: String) {
         scope.launch {
             val result = withContext(Dispatchers.IO) {
-                JsToolRunner.run(this@PluginsActivity, id) { url -> WasmHttpFetcher.fetch(url) }
+                JsToolRunner.run(this@PluginsActivity, id) { url, offset -> WasmHttpFetcher.fetch(url, offset) }
             }
             MaterialAlertDialogBuilder(this@PluginsActivity)
                 .setTitle("JS 工具：$id")

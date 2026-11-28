@@ -31,3 +31,10 @@
 # QuickJS JNI 桥：native 侧按类名反射查找 JsEngine 并回调 dispatch，
 # 混淆改名会导致运行时 No implementation found / dispatch 找不到
 -keep class io.github.aixtin.nyrallite.plugins.js.JsEngine { *; }
+
+# readability4j / jsoup：http_fetch 的 HTML 正文提取
+-keep class net.dankito.readability4j.** { *; }
+-dontwarn net.dankito.readability4j.**
+-dontwarn org.jsoup.**
+# slf4j 是 readability4j 的传递依赖，Android 上无绑定实现，运行时回落 NOP 日志
+-dontwarn org.slf4j.**

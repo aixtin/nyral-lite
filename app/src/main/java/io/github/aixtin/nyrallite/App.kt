@@ -107,7 +107,7 @@ class App : Application() {
                 ToolSource::class,
                 JsToolSource(
                     appContext = this@App,
-                    httpFetcher = { url -> WasmHttpFetcher.fetch(url) },
+                    httpFetcher = { url, offset -> WasmHttpFetcher.fetch(url, offset) },
                 ),
                 requires = emptySet(),
             )

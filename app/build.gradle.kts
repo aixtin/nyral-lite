@@ -164,5 +164,7 @@ dependencies {
     implementation("org.commonmark:commonmark:0.21.0")
     implementation("org.commonmark:commonmark-ext-gfm-strikethrough:0.21.0")
     implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0")
+    // http_fetch 的 HTML 正文提取（Readability 算法，jsoup 系）
+    implementation("net.dankito.readability4j:readability4j:1.0.8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }

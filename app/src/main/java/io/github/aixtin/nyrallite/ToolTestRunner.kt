@@ -71,7 +71,7 @@ internal class ToolTestRunner(
                 try {
                     onResult(name, ToolResult(content = "运行中…"), true)
                     val result = withContext(Dispatchers.IO) {
-                        JsSandboxSelfTest.run(httpFetcher = { url -> WasmHttpFetcher.fetch(url) })
+                        JsSandboxSelfTest.run(httpFetcher = { url, offset -> WasmHttpFetcher.fetch(url, offset) })
                     }
                     onResult(name, result, false)
                 } catch (t: Throwable) {

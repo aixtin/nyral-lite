@@ -12,7 +12,7 @@ import org.json.JSONObject
  */
 class JsPluginGateway(
     private val capabilities: Set<String> = emptySet(),
-    private val httpFetcher: ((url: String) -> ByteArray?)? = null,
+    private val httpFetcher: ((url: String, offset: Int) -> ByteArray?)? = null,
     private val onAudit: (entry: String) -> Unit = {},
 ) : JsDispatcher {
     val auditLog = mutableListOf<String>()
@@ -38,11 +38,13 @@ class JsPluginGateway(
     }
 
     private fun httpFetch(argsJson: String): String? {
-        val url = try {
-            JSONObject(argsJson).optString("url")
+        val parsed = try {
+            JSONObject(argsJson)
         } catch (_: Exception) {
             null
         }
+        val url = parsed?.optString("url")
+        val offset = parsed?.optInt("offset", 0)?.takeIf { it > 0 } ?: 0
         if (url.isNullOrEmpty()) {
             audit("http_fetch: DENIED (bad args)")
             return null
@@ -51,11 +53,11 @@ class JsPluginGateway(
             audit("http_fetch: $url DENIED (fetcher missing)")
             return null
         }
-        val bytes = fetcher(url) ?: run {
+        val bytes = fetcher(url, offset) ?: run {
             audit("http_fetch: $url DENIED (fetch failed)")
             return null
         }
-        audit("http_fetch: $url ALLOWED (${bytes.size}B)")
+        audit("http_fetch: $url ALLOWED (${bytes.size}B, offset=$offset)")
         return bytes.decodeToString()
     }
 

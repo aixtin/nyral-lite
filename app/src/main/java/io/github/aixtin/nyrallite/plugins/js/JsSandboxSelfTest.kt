@@ -26,7 +26,7 @@ internal object JsSandboxSelfTest {
     """.trimIndent()
 
     /** 阻塞执行（含网络），调用方须在 IO 线程。 */
-    fun run(httpFetcher: ((url: String) -> ByteArray?)?): ToolResult {
+    fun run(httpFetcher: ((url: String, offset: Int) -> ByteArray?)?): ToolResult {
         val gateway = JsPluginGateway(
             capabilities = setOf("http_fetch"),
             httpFetcher = httpFetcher,

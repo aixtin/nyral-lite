@@ -19,7 +19,7 @@ internal object JsToolRunner {
     fun run(
         context: Context,
         toolId: String,
-        httpFetcher: ((url: String) -> ByteArray?)?,
+        httpFetcher: ((url: String, offset: Int) -> ByteArray?)?,
     ): ToolResult {
         val script = JsToolRepo.load(context, toolId)
             ?: return ToolResult(content = "脚本文件缺失：$toolId", isError = true)
