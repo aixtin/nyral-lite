@@ -36,8 +36,29 @@ android {
         applicationId = "io.github.aixtin.nyrallite"
         minSdk = 31
         targetSdk = 36
-        versionCode = 4
-        versionName = "0.1.2"
+        // 版本号从 git 取：versionName=最近标签（去 v 前缀），versionCode=提交总数；git 不可用时退回手写值
+        val gitTag = runCatching {
+            ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
+                .directory(rootDir)
+                .start()
+                .inputStream
+                .bufferedReader()
+                .readText()
+                .trim()
+                .removePrefix("v")
+        }.getOrDefault("0.1.2")
+        val gitCommitCount = runCatching {
+            ProcessBuilder("git", "rev-list", "--count", "HEAD")
+                .directory(rootDir)
+                .start()
+                .inputStream
+                .bufferedReader()
+                .readText()
+                .trim()
+                .toInt()
+        }.getOrDefault(4)
+        versionCode = gitCommitCount
+        versionName = gitTag
         ndk { abiFilters += listOf("arm64-v8a") }
 
         // 构建时注入 git 提交哈希与构建时间：排查"装的是哪个包"用，失败不挡构建
