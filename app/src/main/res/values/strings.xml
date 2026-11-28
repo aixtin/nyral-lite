@@ -154,6 +154,8 @@
     <string name="plugins_dex_hint">导入的 APK 需带 Plugin-Entry 声明；第三方签名会在导入时弹窗确认。已启用的插件会在下次启动时自动加载。</string>
     <string name="plugins_section_wasm">WASM 插件</string>
     <string name="plugins_wasm_hint">导入的 .wasm 经能力网关按策略执行；移除会同时删除文件与信任记录，重装需重新确认。</string>
+    <string name="plugins_section_js">JS 工具</string>
+    <string name="plugins_js_hint">导入的 .js 在 QuickJS 沙箱中执行，能力只认脚本头部 nyral.tool 声明；移除即删文件，更新需重新确认。</string>
     <string name="plugins_running">运行中</string>
     <string name="plugins_stopped">未运行</string>
     <string name="plugins_builtin">内置</string>

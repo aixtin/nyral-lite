@@ -152,14 +152,14 @@ private fun readCustomSection(wasmBytes: ByteArray, sectionName: String): ByteAr
  * 未转义控制字符等一律放行，而自定义段是不可信输入——宽松语法会让畸形元数据
  * 混过安装期校验。这里只做语法判定，字段提取仍交给 org.json。
  */
-private fun isStrictJson(text: String): Boolean = try {
+internal fun isStrictJson(text: String): Boolean = try {
     StrictJsonValidator(text).validate()
     true
 } catch (e: StrictJsonValidator.Invalid) {
     false
 }
 
-private class StrictJsonValidator(private val text: String) {
+internal class StrictJsonValidator(private val text: String) {
     class Invalid : Exception()
 
     private var i = 0

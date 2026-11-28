@@ -27,7 +27,10 @@ internal object JsSandboxSelfTest {
 
     /** 阻塞执行（含网络），调用方须在 IO 线程。 */
     fun run(httpFetcher: ((url: String) -> ByteArray?)?): ToolResult {
-        val gateway = JsPluginGateway(httpFetcher = httpFetcher)
+        val gateway = JsPluginGateway(
+            capabilities = setOf("http_fetch"),
+            httpFetcher = httpFetcher,
+        )
         return try {
             val out = gateway.run(SCRIPT)
             Log.i("JsSandbox", "selftest out=$out audit=${gateway.auditLog}")

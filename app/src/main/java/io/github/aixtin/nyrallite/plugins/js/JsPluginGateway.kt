@@ -4,15 +4,17 @@ import org.json.JSONObject
 
 /**
  * JS 中间档能力网关：脚本在裸 QuickJS 里跑，唯一宿主入口 nyral.invoke(cap, args)，
- * 每个能力在这里按策略执行并审计。deny 为默认：回调缺省即拒绝。
+ * 每个能力在这里按策略执行并审计。deny 为默认：
+ * 未声明的能力、回调缺省的能力，一律拒绝并审计。
  *
- * M1 先接 http_fetch（复用 WASM 通道的 fetcher），其余能力随 M2 扩展；
- * 契约与 WasmPluginGateway 对齐：能力即插座，网关之外无路可走。
+ * 能力装配只认声明清单（capabilities）：确认弹窗展示什么，运行时就有什么。
+ * M2 先接 http_fetch（复用 WASM 通道的 fetcher），其余能力随批次扩展。
  */
 class JsPluginGateway(
+    private val capabilities: Set<String> = emptySet(),
     private val httpFetcher: ((url: String) -> ByteArray?)? = null,
     private val onAudit: (entry: String) -> Unit = {},
-) {
+) : JsDispatcher {
     val auditLog = mutableListOf<String>()
 
     private fun audit(entry: String) {
@@ -20,21 +22,18 @@ class JsPluginGateway(
         onAudit(entry)
     }
 
-    /** 挂到引擎：脚本此后可以请求已声明的能力。 */
-    fun install() {
-        JsEngine.dispatcher = ::dispatch
-    }
-
-    fun uninstall() {
-        JsEngine.dispatcher = null
-    }
-
     /** 引擎回调：按能力名分发；返回 null 即拒绝，脚本侧拿到 null。 */
-    fun dispatch(cap: String, argsJson: String): String? = when (cap) {
-        "http_fetch" -> httpFetch(argsJson)
-        else -> {
-            audit("$cap DENIED (unknown capability)")
-            null
+    override fun dispatch(cap: String, argsJson: String): String? {
+        if (cap !in capabilities) {
+            audit("$cap DENIED (not declared)")
+            return null
+        }
+        return when (cap) {
+            "http_fetch" -> httpFetch(argsJson)
+            else -> {
+                audit("$cap DENIED (unknown capability)")
+                null
+            }
         }
     }
 
@@ -62,8 +61,7 @@ class JsPluginGateway(
 
     /** 跑一段脚本：独立 runtime，跑完即焚。返回 JSON 或 "ERROR: " 前缀；null 表示引擎异常。 */
     fun run(script: String, timeoutMs: Long = DEFAULT_TIMEOUT_MS): String? {
-        install()
-        val handle = JsEngine.newRuntime(MEMORY_LIMIT, STACK_LIMIT, timeoutMs)
+        val handle = JsEngine.newRuntime(MEMORY_LIMIT, STACK_LIMIT, timeoutMs, this)
         try {
             return JsEngine.eval(handle, script)
         } finally {

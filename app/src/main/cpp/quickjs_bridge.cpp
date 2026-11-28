@@ -12,14 +12,14 @@
 namespace {
 
 JavaVM* g_vm = nullptr;
-jclass g_engineCls = nullptr;
-jmethodID g_dispatchMid = nullptr;
 
 struct JsHandle {
     JSRuntime* rt = nullptr;
     JSContext* ctx = nullptr;
     std::chrono::steady_clock::time_point deadline{};
     long timeoutMs = 60000;
+    jobject dispatcher = nullptr;    // GlobalRef：创建时注入的宿主分发器
+    jmethodID dispatchMid = nullptr; // JsDispatcher.dispatch(String,String)String
 };
 
 JsHandle* handleOf(JSContext* ctx) {
@@ -64,8 +64,14 @@ JSValue jsNyralInvoke(JSContext* ctx, JSValueConst /*this_val*/, int argc, JSVal
         return JS_ThrowInternalError(ctx, "jni string alloc failed");
     }
 
+    auto* h = handleOf(ctx);
+    if (!h || !h->dispatcher || !h->dispatchMid) {
+        env->DeleteLocalRef(jcap);
+        env->DeleteLocalRef(jargs);
+        return JS_ThrowInternalError(ctx, "host dispatcher unavailable");
+    }
     jstring jres = static_cast<jstring>(
-        env->CallStaticObjectMethod(g_engineCls, g_dispatchMid, jcap, jargs));
+        env->CallObjectMethod(h->dispatcher, h->dispatchMid, jcap, jargs));
     env->DeleteLocalRef(jcap);
     env->DeleteLocalRef(jargs);
 
@@ -131,18 +137,8 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
 
 extern "C" JNIEXPORT jlong JNICALL
 Java_io_github_aixtin_nyrallite_plugins_js_JsEngine_newRuntime(
-    JNIEnv* env, jobject /*thiz*/, jlong memoryLimit, jlong stackLimit, jlong timeoutMs) {
-    // 缓存 JsEngine.dispatch 的静态方法句柄
-    if (!g_engineCls) {
-        jclass cls = env->FindClass("io/github/aixtin/nyrallite/plugins/js/JsEngine");
-        if (!cls) return 0;
-        g_engineCls = static_cast<jclass>(env->NewGlobalRef(cls));
-        env->DeleteLocalRef(cls);
-        g_dispatchMid = env->GetStaticMethodID(
-            g_engineCls, "dispatch", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
-        if (!g_dispatchMid) return 0;
-    }
-
+    JNIEnv* env, jobject /*thiz*/, jlong memoryLimit, jlong stackLimit, jlong timeoutMs,
+    jobject dispatcher) {
     auto* h = new JsHandle();
     h->rt = JS_NewRuntime();
     if (!h->rt) { delete h; return 0; }
@@ -153,6 +149,17 @@ Java_io_github_aixtin_nyrallite_plugins_js_JsEngine_newRuntime(
     h->ctx = JS_NewContext(h->rt);
     if (!h->ctx) { JS_FreeRuntime(h->rt); delete h; return 0; }
     h->timeoutMs = static_cast<long>(timeoutMs);
+
+    // 绑定本句柄的宿主分发器：JsDispatcher.dispatch(String,String)String
+    jclass dcls = env->GetObjectClass(dispatcher);
+    if (!dcls) { JS_FreeContext(h->ctx); JS_FreeRuntime(h->rt); delete h; return 0; }
+    h->dispatchMid = env->GetMethodID(
+        dcls, "dispatch", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
+    env->DeleteLocalRef(dcls);
+    if (!h->dispatchMid) { JS_FreeContext(h->ctx); JS_FreeRuntime(h->rt); delete h; return 0; }
+    h->dispatcher = env->NewGlobalRef(dispatcher);
+    if (!h->dispatcher) { JS_FreeContext(h->ctx); JS_FreeRuntime(h->rt); delete h; return 0; }
+
     registerNyral(h->ctx);
     return reinterpret_cast<jlong>(h);
 }
@@ -167,10 +174,11 @@ Java_io_github_aixtin_nyrallite_plugins_js_JsEngine_eval(
 
 extern "C" JNIEXPORT void JNICALL
 Java_io_github_aixtin_nyrallite_plugins_js_JsEngine_close(
-    JNIEnv* /*env*/, jobject /*thiz*/, jlong handle) {
+    JNIEnv* env, jobject /*thiz*/, jlong handle) {
     auto* h = reinterpret_cast<JsHandle*>(handle);
     if (!h) return;
     if (h->ctx) JS_FreeContext(h->ctx);
     if (h->rt) JS_FreeRuntime(h->rt);
+    if (h->dispatcher) env->DeleteGlobalRef(h->dispatcher);
     delete h;
 }

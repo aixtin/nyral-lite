@@ -175,6 +175,44 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
+            <!-- JS 工具 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/plugins_section_js"
+                android:textColor="@color/ai_text"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_import_js"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="0dp"
+                app:cornerRadius="20dp"
+                android:paddingHorizontal="18dp"
+                android:text="导入 JS"
+                android:textColor="@color/user_text"
+                android:textSize="13sp"
+                android:backgroundTint="@color/brand" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:alpha="0.6"
+                android:text="@string/plugins_js_hint"
+                android:textColor="@color/ai_text"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/js_tool_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
             <!-- 内置插件 -->
             <TextView
                 android:layout_width="wrap_content"

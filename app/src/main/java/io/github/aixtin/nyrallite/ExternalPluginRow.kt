@@ -61,6 +61,52 @@ internal class ExternalPluginRow(
             )
         }
 
+    /** JS 工具的一行卡片：与 WASM 行同一套视觉，多一个「运行」胶囊（按需执行，跑完即焚）。 */
+    fun jsTool(id: String, onRun: () -> Unit, onRemove: () -> Unit): LinearLayout =
+        LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            background = ContextCompat.getDrawable(activity, R.drawable.bg_card)
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { bottomMargin = dp(8) }
+
+            addView(
+                LinearLayout(activity).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    addView(
+                        TextView(activity).apply {
+                            text = id
+                            textSize = 14f
+                            typeface = Typeface.DEFAULT_BOLD
+                            setTextColor(ContextCompat.getColor(activity, R.color.ai_text))
+                            layoutParams = LinearLayout.LayoutParams(
+                                0,
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                1f,
+                            )
+                        },
+                    )
+                    addView(chip("运行", R.color.brand) { onRun() })
+                    addView(chip("移除", R.color.tool_fail) { onRemove() })
+                },
+            )
+            addView(
+                TextView(activity).apply {
+                    text = "按需执行，跑完即焚"
+                    textSize = 11f
+                    setTextColor(ContextCompat.getColor(activity, R.color.brand))
+                    alpha = 0.75f
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    ).apply { topMargin = dp(4) }
+                },
+            )
+        }
+
     fun build(
         record: ExternalPluginRecord,
         installed: Boolean,

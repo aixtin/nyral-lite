@@ -11,17 +11,24 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aixtin.nyrallite.contract.McpConfigStore
 import io.github.aixtin.nyrallite.contract.SecuritySettingsStore
 import io.github.aixtin.nyrallite.kernel.getOrNull
+import io.github.aixtin.nyrallite.plugins.js.JsToolRepo
+import io.github.aixtin.nyrallite.plugins.js.JsToolRunner
+import io.github.aixtin.nyrallite.plugins.wasm.WasmHttpFetcher
 import io.github.aixtin.nyrallite.plugins.wasm.WasmPluginRepo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 插件页：内置插件状态 + 外部 Dex 插件的导入/启停 + 工具自测面板。
- * 自测面板见 [ToolTestPanel]，APK 导入见 [PluginApkImporter]，WASM 导入见 [PluginWasmImporter]。
+ * 自测面板见 [ToolTestPanel]，APK 导入见 [PluginApkImporter]，
+ * WASM 导入见 [PluginWasmImporter]，JS 工具导入见 [JsToolImporter]。
  */
 class PluginsActivity : AppCompatActivity() {
 
@@ -67,9 +74,15 @@ class PluginsActivity : AppCompatActivity() {
             refreshWasmPlugins()
         }
         findViewById<Button>(R.id.btn_import_wasm).setOnClickListener { wasmImporter.launch() }
+        val jsImporter = JsToolImporter(this, scope) { msg, isError ->
+            updateDexStatus(msg, isError)
+            refreshJsTools()
+        }
+        findViewById<Button>(R.id.btn_import_js).setOnClickListener { jsImporter.launch() }
         findViewById<TextView>(R.id.btn_unload_all).setOnClickListener { unloadAll(app) }
         externalPanel.refresh()
         refreshWasmPlugins()
+        refreshJsTools()
 
         buildPluginCards()
     }
@@ -144,6 +157,48 @@ class PluginsActivity : AppCompatActivity() {
         val ok = WasmPluginRepo.uninstall(this, id)
         updateDexStatus(if (ok) "已移除 WASM 插件：$id" else "移除失败：$id 的插件文件无法删除", !ok)
         refreshWasmPlugins()
+    }
+
+    /** 刷新 JS 工具列表：展示已安装项，支持运行（按需执行）与移除。 */
+    private fun refreshJsTools() {
+        val container = findViewById<LinearLayout>(R.id.js_tool_list) ?: return
+        container.removeAllViews()
+        val ids = JsToolRepo.list(this)
+        if (ids.isEmpty()) {
+            container.addView(TextView(this).apply {
+                text = "暂无 JS 工具。点「导入 JS」选择 .js 文件。"
+                setTextColor(ContextCompat.getColor(this@PluginsActivity, R.color.ai_text))
+                alpha = 0.5f
+                textSize = 12f
+            })
+            return
+        }
+        val rows = ExternalPluginRow(this)
+        for (id in ids) {
+            container.addView(
+                rows.jsTool(id, onRun = { runJsTool(id) }, onRemove = { removeJsTool(id) }),
+            )
+        }
+    }
+
+    /** 运行 JS 工具：IO 线程执行（含网络），结果弹窗展示。 */
+    private fun runJsTool(id: String) {
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                JsToolRunner.run(this@PluginsActivity, id) { url -> WasmHttpFetcher.fetch(url) }
+            }
+            MaterialAlertDialogBuilder(this@PluginsActivity)
+                .setTitle("JS 工具：$id")
+                .setMessage(if (result.isError) "失败：${result.content}" else result.content)
+                .setPositiveButton("关闭", null)
+                .show()
+        }
+    }
+
+    private fun removeJsTool(id: String) {
+        val ok = JsToolRepo.uninstall(this, id)
+        updateDexStatus(if (ok) "已移除 JS 工具：$id" else "移除失败：$id 的工具文件无法删除", !ok)
+        refreshJsTools()
     }
 
     private val Int.dp: Int
