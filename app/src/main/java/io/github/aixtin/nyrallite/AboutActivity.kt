@@ -34,5 +34,17 @@ class AboutActivity : AppCompatActivity() {
                 )
             }
         }
+        bindLink(R.id.row_site, R.string.about_site_url)
+        bindLink(R.id.row_blog, R.string.about_blog_url)
+        bindLink(R.id.row_group, R.string.about_group_url)
+    }
+
+    // 社区行点击跳浏览器；占位链接打不开时静默忽略
+    private fun bindLink(viewId: Int, urlRes: Int) {
+        findViewById<View>(viewId).setOnClickListener {
+            runCatching {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(urlRes))))
+            }
+        }
     }
 }
