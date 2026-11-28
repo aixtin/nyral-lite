@@ -53,6 +53,7 @@ class PluginsActivity : AppCompatActivity() {
             scope,
             { msg, isError -> updateDexStatus(msg, isError) },
             ::apkImportUnlocked,
+            ::refreshDynamicSection,
         )
         val importer = PluginApkImporter(this, scope, ::updateDexStatus) {
             externalPanel.refresh()
@@ -77,6 +78,20 @@ class PluginsActivity : AppCompatActivity() {
      * APK 导入入口默认隐藏：连点标题 15 次（3 秒内）解锁，单向持久生效。
      * 已安装的 APK 插件不受影响，照常展示与加载；WASM 导入入口不受此控制。
      */
+    /**
+     * 动态插件区整体显隐：入口未解锁且从未装过 APK 插件时整区隐藏，
+     * 避免普通用户看到一个无法操作的空区。装过插件（即使已停用）则保留展示。
+     */
+    private fun refreshDynamicSection() {
+        val show = apkImportUnlocked() ||
+            (application as App).externalPlugins.all().isNotEmpty()
+        val visibility = if (show) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.dynamic_header).visibility = visibility
+        findViewById<View>(R.id.btn_unload_all).visibility = visibility
+        findViewById<View>(R.id.external_plugin_list).visibility = visibility
+        if (!show) findViewById<View>(R.id.dex_plugin_status).visibility = View.GONE
+    }
+
     private fun apkImportUnlocked(): Boolean =
         getSharedPreferences(PREF_PLUGINS_DEV, MODE_PRIVATE)
             .getBoolean(KEY_APK_IMPORT_UNLOCKED, false)
@@ -99,6 +114,7 @@ class PluginsActivity : AppCompatActivity() {
                     .edit().putBoolean(KEY_APK_IMPORT_UNLOCKED, true).apply()
                 apkImport.visibility = View.VISIBLE
                 findViewById<TextView>(R.id.dex_plugin_status).visibility = View.VISIBLE
+                refreshDynamicSection()
                 tapCount = 0
             }
         }

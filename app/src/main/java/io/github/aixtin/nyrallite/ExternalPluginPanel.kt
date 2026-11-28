@@ -21,10 +21,12 @@ class ExternalPluginPanel(
     private val scope: CoroutineScope,
     private val onStatus: (String, Boolean) -> Unit,
     private val apkImportUnlocked: () -> Boolean = { true },
+    private val onAfterRefresh: () -> Unit = {},
 ) {
     private val rows = ExternalPluginRow(activity, ::remove, ::toggle)
 
     fun refresh() {
+        onAfterRefresh()
         container.removeAllViews()
         val records = app.externalPlugins.all().sortedBy { it.installedAt }
         if (records.isEmpty()) {
