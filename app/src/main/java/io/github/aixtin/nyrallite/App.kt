@@ -28,6 +28,9 @@ import io.github.aixtin.nyrallite.plugins.dex.DexPluginLoader
 import io.github.aixtin.nyrallite.plugins.dex.ExternalPluginStore
 import io.github.aixtin.nyrallite.plugins.dex.TrustedApkStore
 import io.github.aixtin.nyrallite.plugins.voicestt.VoiceSttPlugin
+import io.github.aixtin.nyrallite.plugins.wasm.WasmHttpFetcher
+import io.github.aixtin.nyrallite.plugins.wasm.WasmToolSource
+import io.github.aixtin.nyrallite.plugins.system.NotificationSenderImpl
 
 /**
  * 组合根：全 App 唯一装配 kernel + 内置插件的地方。
@@ -83,6 +86,18 @@ class App : Application() {
             services.provide(ToolApproval::class, approval)
             // 标准插件按序接入：storage-prefs → model-openai → render-markdown → security-policy → mcp-client → system-tools
             install(plugins)
+            // WASM 插件工具来源：已安装且带工具元数据的插件注册为模型可调用工具
+            services.provide(
+                ToolSource::class,
+                WasmToolSource(
+                    appContext = this@App,
+                    notifier = { title, body ->
+                        runCatching { NotificationSenderImpl(this@App).send(title, body, "nyral_generic") }.isSuccess
+                    },
+                    httpFetcher = { url -> WasmHttpFetcher.fetch(url) },
+                ),
+                requires = emptySet(),
+            )
             // 聚合所有 ToolSource（MCP 远程工具 + 系统原生工具 + 以后的 WebView 工具）
             services.provide(
                 ToolRegistry::class,

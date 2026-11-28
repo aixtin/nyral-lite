@@ -27,6 +27,10 @@ import io.github.charlietap.chasm.type.ValueType
  * 能力注入：read_file/http_fetch 的真实效果由宿主回调提供（fileProvider/httpFetcher），
  * notify 由 notifier 提供；回调缺省为 null 时对应能力一律拒绝并审计。
  * read_file 与 http_fetch 共用插件内存的约定缓冲区 RESULT_BUF，后写覆盖先写。
+ *
+ * 工具调用通道（非能力，不进能力声明展示）：插件作为模型工具执行时，
+ * 通过 get_args 取调用参数、put_result 交回执行结果，宿主函数本就持有插件内存
+ * 读写权，参数与结果不经过任何旁路。
  */
 class WasmPluginGateway(
     private val readFileAllowlist: Set<String> = emptySet(),
@@ -34,9 +38,14 @@ class WasmPluginGateway(
     private val notifier: ((title: String, body: String) -> Boolean)? = null,
     private val httpFetcher: ((url: String) -> ByteArray?)? = null,
     private val onAudit: (entry: String) -> Unit = {},
+    private val argsProvider: (() -> ByteArray?)? = null,
 ) {
     val auditLog = mutableListOf<String>()
     val capturedLogs = mutableListOf<String>()
+
+    /** 插件经 put_result 交回的执行结果；未调用时为 null */
+    var toolResult: ByteArray? = null
+        private set
 
     private fun audit(entry: String) {
         auditLog += entry
@@ -143,6 +152,51 @@ class WasmPluginGateway(
         }
     }
 
+    /**
+     * get_args(dest) -> i32
+     * 把本次工具调用的参数 JSON 写进插件内存 dest 处，返回字节数；无参数返回 0。
+     * 参数由调用方经 argsProvider 注入；未注入（如安装预览）返回 0。
+     */
+    private val getArgsFn = object : HostFunction {
+        context(stack: HostStack, module: HostModuleInstance, resources: HostResources)
+        override fun invoke(parameters: Int, results: Int) {
+            val dest = parameters.readI32(0)
+            val args = argsProvider?.invoke()
+            if (args == null || args.isEmpty()) {
+                results.writeI32(0, 0)
+                return
+            }
+            if (args.size > ARGS_CAP) {
+                audit("get_args: DENIED (args too large)")
+                results.writeI32(0, -1)
+                return
+            }
+            memoryAt(resources, module).write(dest, args)
+            results.writeI32(0, args.size)
+        }
+    }
+
+    /**
+     * put_result(src, len) -> i32
+     * 插件把结果 JSON 写在自己的内存里，经此交给宿主；返回 0。
+     * 超上限截断为不可用（置 null），宁可失败也不交付半截结果。
+     */
+    private val putResultFn = object : HostFunction {
+        context(stack: HostStack, module: HostModuleInstance, resources: HostResources)
+        override fun invoke(parameters: Int, results: Int) {
+            val src = parameters.readI32(0)
+            val len = parameters.readI32(1)
+            if (len < 0 || len > RESULT_CAP) {
+                toolResult = null
+                audit("put_result: DENIED (size $len out of range)")
+                results.writeI32(0, -1)
+                return
+            }
+            toolResult = memoryAt(resources, module).read(ByteArray(len), src, len)
+            results.writeI32(0, 0)
+        }
+    }
+
     fun imports(store: Store): List<Import> {
         val logType = FunctionType(
             ResultType(listOf(ValueType.Number(NumberType.I32), ValueType.Number(NumberType.I32))),
@@ -163,17 +217,29 @@ class WasmPluginGateway(
             ),
             ResultType(listOf(ValueType.Number(NumberType.I32))),
         )
+        val argsType = FunctionType(
+            ResultType(listOf(ValueType.Number(NumberType.I32))),
+            ResultType(listOf(ValueType.Number(NumberType.I32))),
+        )
         return listOf(
             Import(MODULE_NAME, "log", function(store, logType, logFn)),
             Import(MODULE_NAME, "read_file", function(store, readType, readFileFn)),
             Import(MODULE_NAME, "notify", function(store, notifyType, notifyFn)),
             Import(MODULE_NAME, "http_fetch", function(store, readType, httpFetchFn)),
+            Import(MODULE_NAME, "get_args", function(store, argsType, getArgsFn)),
+            Import(MODULE_NAME, "put_result", function(store, readType, putResultFn)),
         )
     }
 
     companion object {
         const val MODULE_NAME = "nyral"
         const val RESULT_BUF = 1024
-        const val RESULT_CAP = 256
+        const val RESULT_CAP = 4096
+
+        /** get_args 单次写入参数的上限 */
+        const val ARGS_CAP = 8192
+
+        /** 能力声明展示只列这些导入；get_args/put_result 是调用通道，不是能力 */
+        val CAPABILITY_IMPORTS = setOf("log", "read_file", "notify", "http_fetch")
     }
 }
