@@ -27,3 +27,7 @@
 # 协程：插件常直接使用（withContext / launch 等），一并保留
 -keep class kotlinx.coroutines.** { *; }
 -dontwarn kotlinx.coroutines.**
+
+# QuickJS JNI 桥：native 侧按类名反射查找 JsEngine 并回调 dispatch，
+# 混淆改名会导致运行时 No implementation found / dispatch 找不到
+-keep class io.github.aixtin.nyrallite.plugins.js.JsEngine { *; }

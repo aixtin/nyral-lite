@@ -105,6 +105,7 @@ internal class ToolTestPanel(
             TestSpec("get_location", "{}"),
             TestSpec("read_clipboard", "{}"),
             TestSpec("write_clipboard", """{"text":"Nyral Lite 剪贴板自测 OK"}"""),
+            TestSpec("js_sandbox", "{}"),
         )
     }
 }

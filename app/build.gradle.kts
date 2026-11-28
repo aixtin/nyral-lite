@@ -23,6 +23,7 @@ android {
     }
     namespace = "io.github.aixtin.nyrallite"
     compileSdk = 37
+    ndkVersion = "27.1.12297006"
 
     defaultConfig {
         applicationId = "io.github.aixtin.nyrallite"
@@ -30,6 +31,14 @@ android {
         targetSdk = 36
         versionCode = 4
         versionName = "0.1.2"
+        ndk { abiFilters += listOf("arm64-v8a") }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     signingConfigs {

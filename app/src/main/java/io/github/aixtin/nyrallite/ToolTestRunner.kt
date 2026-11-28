@@ -9,8 +9,12 @@ import androidx.core.content.ContextCompat
 import io.github.aixtin.nyrallite.contract.ToolRegistry
 import io.github.aixtin.nyrallite.contract.ToolResult
 import io.github.aixtin.nyrallite.kernel.getOrNull
+import io.github.aixtin.nyrallite.plugins.js.JsSandboxSelfTest
+import io.github.aixtin.nyrallite.plugins.wasm.WasmHttpFetcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** 工具自测的执行侧：权限检查 → 调 ToolRegistry → 回调结果。 */
 internal class ToolTestRunner(
@@ -61,6 +65,21 @@ internal class ToolTestRunner(
 
     private fun execute(request: Pair<String, String>) {
         val (name, args) = request
+        if (name == "js_sandbox") {
+            // JS 沙箱自测（M1）：不进 ToolRegistry，直接跑固定脚本
+            scope.launch {
+                try {
+                    onResult(name, ToolResult(content = "运行中…"), true)
+                    val result = withContext(Dispatchers.IO) {
+                        JsSandboxSelfTest.run(httpFetcher = { url -> WasmHttpFetcher.fetch(url) })
+                    }
+                    onResult(name, result, false)
+                } catch (t: Throwable) {
+                    onResult(name, ToolResult(content = t.message ?: "unknown", isError = true), false)
+                }
+            }
+            return
+        }
         val registry = activity.kernel.services.getOrNull<ToolRegistry>()
         if (registry == null) {
             onResult(name, ToolResult(content = "ToolRegistry 未注册", isError = true), false)
