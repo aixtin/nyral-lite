@@ -35,6 +35,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<View>(R.id.entry_security).setOnClickListener {
             startActivity(Intent(this, SecurityConfigActivity::class.java))
         }
+        findViewById<View>(R.id.entry_about).setOnClickListener {
+            startActivity(Intent(this, AboutActivity::class.java))
+        }
     }
 
     override fun onResume() {

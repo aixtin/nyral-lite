@@ -1,3 +1,5 @@
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Properties
 
 plugins {
@@ -25,6 +27,11 @@ android {
     compileSdk = 37
     ndkVersion = "27.1.12297006"
 
+    // 关于页读取版本与构建信息
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "io.github.aixtin.nyrallite"
         minSdk = 31
@@ -32,6 +39,24 @@ android {
         versionCode = 4
         versionName = "0.1.2"
         ndk { abiFilters += listOf("arm64-v8a") }
+
+        // 构建时注入 git 提交哈希与构建时间：排查"装的是哪个包"用，失败不挡构建
+        val gitHash = runCatching {
+            ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+                .directory(rootDir)
+                .start()
+                .inputStream
+                .bufferedReader()
+                .readText()
+                .trim()
+                .ifEmpty { "unknown" }
+        }.getOrDefault("unknown")
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+        buildConfigField(
+            "String",
+            "BUILD_TIME",
+            "\"${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))}\"",
+        )
     }
 
     externalNativeBuild {

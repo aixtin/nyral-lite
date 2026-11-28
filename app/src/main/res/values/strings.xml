@@ -30,6 +30,15 @@
     <string name="cfg_rounds">工具轮数上限</string>
     <string name="cfg_rounds_hint">留空用默认 8；一条消息内模型最多连续调用几轮工具</string>
     <string name="cfg_rounds_invalid">工具轮数上限需在 1～99 之间</string>
+    <string name="about_title">关于</string>
+    <string name="about_summary">版本与构建信息</string>
+    <string name="about_version">版本 %1$s（%2$d）</string>
+    <string name="about_build_title">构建信息</string>
+    <string name="about_build">提交 %1$s · 构建于 %2$s</string>
+    <string name="about_repo">项目</string>
+    <string name="about_repo_url">https://github.com/aixtin/nyral-lite</string>
+    <string name="about_license">MIT License · Copyright © 2026 aixtin</string>
+    <string name="about_desc">轻量的 Android LLM 聊天客户端：流式对话、工具调用、人设卡与插件扩展。</string>
     <string name="cfg_mcp">服务地址（可选）</string>
     <string name="cfg_mcp_hint">https://example.com/mcp</string>
     <string name="cfg_mcp_header">请求头名称（可选）</string>
